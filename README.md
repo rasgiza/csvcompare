@@ -76,11 +76,34 @@ That's it.
 
 ### Run from source
 
+**Recommended (works everywhere, avoids old-pip errors) — use a virtual environment:**
+
 ```bash
 git clone https://github.com/rasgiza/csvcompare.git
 cd csvcompare
-python -m pip install -e .
+
+python3 -m venv .venv          # "python" on Windows
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -e .
 ```
+
+> **Why the venv?** A system Python often ships an old `pip` that can't do an
+> editable (`-e`) install and can't write to site-packages, which produces
+> errors like *"Directory cannot be installed in editable mode"* or
+> *"site-packages is not writeable"*. A venv gives you a fresh, writable,
+> upgradeable pip.
+
+**No editable install needed?** Just install the dependencies and run the tool:
+
+```bash
+pip install -r requirements.txt          # runtime only (pandas, openpyxl)
+# or, for tests + building the app too:
+pip install -r requirements-dev.txt
+```
+
+(Dependencies are declared once in `pyproject.toml`; the `requirements*.txt`
+files mirror them for a simpler, old-pip-friendly install.)
 
 Generate sample data and try it:
 
