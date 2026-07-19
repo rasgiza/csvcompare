@@ -49,6 +49,11 @@ class ComparisonResult:
     mismatches: list[Mismatch] = field(default_factory=list)
     only_in_a: list[RowDifference] = field(default_factory=list)
     only_in_b: list[RowDifference] = field(default_factory=list)
+    strategy: str = "sum"
+    unique_a: int = 0
+    unique_b: int = 0
+    duplicates_a: int = 0
+    duplicates_b: int = 0
 
     @property
     def has_issues(self) -> bool:
@@ -59,15 +64,36 @@ class ComparisonResult:
         return self.total_a == self.total_b
 
 
-def _dedupe(frame: pd.DataFrame, source_label: str) -> pd.DataFrame:
-    """Collapse duplicate names by keeping the last occurrence, warning-free."""
-    return frame.drop_duplicates(subset=NAME_COLUMN, keep="last")
+# Supported ways to collapse multiple rows that share the same name.
+DUPLICATE_STRATEGIES = ("sum", "mean", "last", "first", "max", "min")
+
+
+def _aggregate(frame: pd.DataFrame, strategy: str) -> pd.DataFrame:
+    """Pivot rows down to one row per name using the chosen strategy.
+
+    When the same name appears on several rows, this collapses them into a
+    single value so the comparison is stable regardless of spreadsheet shape.
+    ``sum`` totals the scores; ``last``/``first`` keep a single occurrence.
+    """
+    if strategy not in DUPLICATE_STRATEGIES:
+        raise ValueError(
+            f"Unknown duplicate strategy '{strategy}'. "
+            f"Choose one of: {', '.join(DUPLICATE_STRATEGIES)}"
+        )
+
+    grouped = frame.groupby(NAME_COLUMN, sort=False, as_index=False)
+    if strategy in ("last", "first"):
+        aggregated = getattr(grouped, strategy)()
+    else:
+        aggregated = grouped.agg({SCORE_COLUMN: strategy})
+    return aggregated
 
 
 def compare(
     source_a: pd.DataFrame,
     source_b: pd.DataFrame,
     tolerance: float = 0.0,
+    duplicate_strategy: str = "sum",
 ) -> ComparisonResult:
     """Compare two normalized source frames.
 
@@ -76,9 +102,14 @@ def compare(
         source_b: Normalized frame from Source B.
         tolerance: Allowed absolute score difference. Default 0.0 means any
             non-zero difference is flagged.
+        duplicate_strategy: How to collapse rows that share the same name
+            before comparing (``sum`` by default). See ``DUPLICATE_STRATEGIES``.
     """
-    a = _dedupe(source_a, "A").set_index(NAME_COLUMN)
-    b = _dedupe(source_b, "B").set_index(NAME_COLUMN)
+    agg_a = _aggregate(source_a, duplicate_strategy)
+    agg_b = _aggregate(source_b, duplicate_strategy)
+
+    a = agg_a.set_index(NAME_COLUMN)
+    b = agg_b.set_index(NAME_COLUMN)
 
     names_a = set(a.index)
     names_b = set(b.index)
@@ -87,6 +118,11 @@ def compare(
         total_a=len(source_a),
         total_b=len(source_b),
         matched=0,
+        strategy=duplicate_strategy,
+        unique_a=len(agg_a),
+        unique_b=len(agg_b),
+        duplicates_a=len(source_a) - len(agg_a),
+        duplicates_b=len(source_b) - len(agg_b),
     )
 
     # Names only in A (Source A often has more rows than B).

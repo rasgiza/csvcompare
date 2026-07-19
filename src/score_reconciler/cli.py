@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .comparator import compare
+from .comparator import DUPLICATE_STRATEGIES, compare
 from .loader import LoaderError, load_source
 from .reporter import build_report, write_report
 
@@ -34,6 +34,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="Allowed absolute score difference before flagging a mismatch (default: 0.0)",
     )
+    parser.add_argument(
+        "-d",
+        "--duplicates",
+        choices=DUPLICATE_STRATEGIES,
+        default="sum",
+        help=(
+            "How to collapse multiple rows with the same name before comparing "
+            "(default: sum). 'sum' totals the scores per name; 'last'/'first' "
+            "keep a single row."
+        ),
+    )
     return parser
 
 
@@ -48,7 +59,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
-    result = compare(frame_a, frame_b, tolerance=args.tolerance)
+    result = compare(
+        frame_a,
+        frame_b,
+        tolerance=args.tolerance,
+        duplicate_strategy=args.duplicates,
+    )
     report = build_report(
         result,
         source_a_name=Path(args.source_a).name,

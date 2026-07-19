@@ -47,3 +47,22 @@ def test_tolerance_allows_small_diff():
     b = _frame([("Alice", 10.4)])
     assert compare(a, b, tolerance=0.5).matched == 1
     assert len(compare(a, b, tolerance=0.0).mismatches) == 1
+
+
+def test_duplicate_names_are_summed_by_default():
+    # Alice appears on two rows in A (10 + 15 = 25); B has a single 25.
+    a = _frame([("Alice", 10), ("Alice", 15), ("Bob", 20)])
+    b = _frame([("Alice", 25), ("Bob", 20)])
+    result = compare(a, b)
+    assert result.matched == 2
+    assert not result.has_issues
+    assert result.duplicates_a == 1
+    assert result.unique_a == 2
+
+
+def test_duplicate_strategy_last_keeps_final_row():
+    a = _frame([("Alice", 10), ("Alice", 15)])
+    b = _frame([("Alice", 15)])
+    result = compare(a, b, duplicate_strategy="last")
+    assert result.matched == 1
+    assert not result.has_issues
