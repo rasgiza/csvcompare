@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.venv/
+venv/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Local test output
+reconciliation_report.txt
+*_report_test.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db

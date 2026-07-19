@@ -1,0 +1,48 @@
+name: Build standalone executables
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # allows manual "Run workflow" from the Actions tab
+
+jobs:
+  build:
+    name: Build (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows-amd64
+          - os: macos-14        # Apple Silicon (arm64)
+            label: macos-arm64
+          - os: macos-13        # Intel Mac (x86_64)
+            label: macos-x86_64
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project + build deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,build]"
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Build standalone bundle (onedir) + zip
+        run: python build_executable.py --mode onedir --zip
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: score-reconciler-${{ matrix.label }}
+          path: dist/score-reconciler-*.zip
+          if-no-files-found: error
