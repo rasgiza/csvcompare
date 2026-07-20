@@ -38,11 +38,11 @@ def build_parser() -> argparse.ArgumentParser:
         "-d",
         "--duplicates",
         choices=DUPLICATE_STRATEGIES,
-        default="sum",
+        default="last",
         help=(
             "How to collapse multiple rows with the same name before comparing "
-            "(default: sum). 'sum' totals the scores per name; 'last'/'first' "
-            "keep a single row."
+            "(default: last). 'last'/'first' keep a single row per name and take "
+            "the score difference; 'sum' totals the scores per name."
         ),
     )
     return parser

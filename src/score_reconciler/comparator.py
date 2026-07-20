@@ -49,7 +49,7 @@ class ComparisonResult:
     mismatches: list[Mismatch] = field(default_factory=list)
     only_in_a: list[RowDifference] = field(default_factory=list)
     only_in_b: list[RowDifference] = field(default_factory=list)
-    strategy: str = "sum"
+    strategy: str = "last"
     unique_a: int = 0
     unique_b: int = 0
     duplicates_a: int = 0
@@ -93,7 +93,7 @@ def compare(
     source_a: pd.DataFrame,
     source_b: pd.DataFrame,
     tolerance: float = 0.0,
-    duplicate_strategy: str = "sum",
+    duplicate_strategy: str = "last",
 ) -> ComparisonResult:
     """Compare two normalized source frames.
 
@@ -103,7 +103,9 @@ def compare(
         tolerance: Allowed absolute score difference. Default 0.0 means any
             non-zero difference is flagged.
         duplicate_strategy: How to collapse rows that share the same name
-            before comparing (``sum`` by default). See ``DUPLICATE_STRATEGIES``.
+            before comparing (``last`` by default: keep one row per name and
+            take the score difference). Use ``sum`` to total scores per name.
+            See ``DUPLICATE_STRATEGIES``.
     """
     agg_a = _aggregate(source_a, duplicate_strategy)
     agg_b = _aggregate(source_b, duplicate_strategy)

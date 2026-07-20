@@ -126,21 +126,24 @@ score-reconciler SOURCE_A SOURCE_B [-o OUTPUT] [-t TOLERANCE]
 | `SOURCE_B` | Path to Source B file (`.csv`/`.xlsx`) | required |
 | `-o, --output` | Report file path | `reconciliation_report.txt` |
 | `-t, --tolerance` | Allowed absolute score difference | `0.0` |
-| `-d, --duplicates` | How to collapse rows sharing a name (`sum`, `mean`, `last`, `first`, `max`, `min`) | `sum` |
+| `-d, --duplicates` | How to collapse rows sharing a name (`last`, `first`, `sum`, `mean`, `max`, `min`) | `last` |
 
 ### Duplicate / repeated names (automatic pivot)
 
 If the same `Name` appears on multiple rows, the tool **collapses them to one
-row per name before comparing** — by default it **sums** the scores (a
-group-by-name pivot). This makes the comparison robust no matter how the
-spreadsheet is shaped. Change the behavior with `-d`:
+row per name before comparing**. By default it keeps a **single** row per name
+(`last`) and takes the plain score difference — so a name listed twice with the
+same score is treated as one entry, not doubled. Each source is collapsed
+independently; the tool never pairs duplicate rows across the two files.
+
+Change the behavior with `-d`:
 
 ```bash
-# Total each person's scores (default)
-score-reconciler A.xlsx B.csv -d sum
-
-# Keep only the last row for a repeated name (no totaling)
+# Default: keep one row per name, then compare the difference
 score-reconciler A.xlsx B.csv -d last
+
+# Opt-in: total each person's scores before comparing (group-by-sum)
+score-reconciler A.xlsx B.csv -d sum
 ```
 
 The report shows how many duplicate rows were collapsed in each source.

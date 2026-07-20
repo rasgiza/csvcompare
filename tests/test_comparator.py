@@ -49,15 +49,25 @@ def test_tolerance_allows_small_diff():
     assert len(compare(a, b, tolerance=0.0).mismatches) == 1
 
 
-def test_duplicate_names_are_summed_by_default():
-    # Alice appears on two rows in A (10 + 15 = 25); B has a single 25.
-    a = _frame([("Alice", 10), ("Alice", 15), ("Bob", 20)])
-    b = _frame([("Alice", 25), ("Bob", 20)])
+def test_duplicate_names_collapsed_to_one_by_default():
+    # Alice is listed twice with the SAME score in A; B lists her once.
+    # Default keeps one row per name and takes the difference (89 - 89 = 0).
+    a = _frame([("Alice", 89), ("Alice", 89), ("Bob", 100)])
+    b = _frame([("Alice", 89), ("Bob", 100)])
     result = compare(a, b)
     assert result.matched == 2
     assert not result.has_issues
     assert result.duplicates_a == 1
     assert result.unique_a == 2
+
+
+def test_duplicate_names_summed_with_sum_strategy():
+    # Opt-in: sum totals each name's scores before comparing.
+    a = _frame([("Alice", 10), ("Alice", 15), ("Bob", 20)])
+    b = _frame([("Alice", 25), ("Bob", 20)])
+    result = compare(a, b, duplicate_strategy="sum")
+    assert result.matched == 2
+    assert not result.has_issues
 
 
 def test_duplicate_strategy_last_keeps_final_row():
