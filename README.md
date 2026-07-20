@@ -70,6 +70,24 @@ xattr -dr com.apple.quarantine ./score-reconciler
 
 That's it.
 
+> **No Python required.** The downloaded app bundles everything it needs. You do
+> **not** need to install Python, pip, or anything else to use it this way.
+
+### Alternative: run from source with the Windows helper
+
+If you'd rather run the Python source (not the bundled app) but don't have
+Python installed, use the included launcher. Double-click or run it from a
+terminal — it checks for Python, installs it via `winget` if missing, installs
+dependencies, then runs the tool:
+
+```bat
+run_windows.bat "C:\path\to\SourceA.csv" "C:\path\to\SourceB.csv" -o "C:\path\to\report.txt"
+```
+
+(A Python script cannot install Python by itself, so this launcher `.bat` does
+the bootstrap step for you. If `winget` is unavailable it points you to the
+python.org installer or the no-Python bundled app above.)
+
 ---
 
 ## For developers
