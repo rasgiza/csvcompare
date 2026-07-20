@@ -31,8 +31,8 @@ if not defined PYCMD (
         pause
         exit /b 1
     )
-    echo Installing Python 3.12 via winget. Please approve any prompts...
-    winget install -e --id Python.Python.3.12 --accept-source-agreements --accept-package-agreements
+    echo Installing Python 3.13 via winget. Please approve any prompts...
+    winget install -e --id Python.Python.3.13 --accept-source-agreements --accept-package-agreements
     echo.
     echo Python was installed. Please CLOSE this window and run run_windows.bat again
     echo so the new PATH takes effect.

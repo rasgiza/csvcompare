@@ -94,14 +94,36 @@ python.org installer or the no-Python bundled app above.)
 
 ### Run from source
 
-**Recommended (works everywhere, avoids old-pip errors) — use a virtual environment:**
+**Recommended (works everywhere, avoids old-pip errors) — use a virtual environment.**
+Pick your operating system:
 
-```bash
+#### Windows (PowerShell)
+
+```powershell
+py --version                     # check Python is installed (e.g. 3.13)
+# If that fails, install it:  winget install -e --id Python.Python.3.13
+# then close and reopen the terminal.
+
 git clone https://github.com/rasgiza/csvcompare.git
 cd csvcompare
 
-python3 -m venv .venv          # "python" on Windows
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+py -m venv .venv                 # create the virtual environment
+.venv\Scripts\Activate.ps1       # activate it
+py -m pip install --upgrade pip
+pip install -e .
+```
+
+#### Mac / Linux (Terminal)
+
+```bash
+python3 --version                # check Python is installed
+# If that fails on Mac:  brew install python
+
+git clone https://github.com/rasgiza/csvcompare.git
+cd csvcompare
+
+python3 -m venv .venv            # create the virtual environment
+source .venv/bin/activate        # activate it
 python -m pip install --upgrade pip
 pip install -e .
 ```
@@ -112,7 +134,8 @@ pip install -e .
 > *"site-packages is not writeable"*. A venv gives you a fresh, writable,
 > upgradeable pip.
 
-**No editable install needed?** Just install the dependencies and run the tool:
+**No editable install needed?** Just install the dependencies and run the tool
+(same on both platforms once the venv is active):
 
 ```bash
 pip install -r requirements.txt          # runtime only (pandas, openpyxl)
@@ -125,12 +148,20 @@ files mirror them for a simpler, old-pip-friendly install.)
 
 Generate sample data and try it:
 
-```bash
-python scripts/generate_sample_data.py
-score-reconciler data/source_a.xlsx data/source_b.csv -o reconciliation_report.txt
+**Windows (PowerShell):**
+```powershell
+py scripts\generate_sample_data.py
+py -m score_reconciler.cli data\source_a.xlsx data\source_b.csv -o reconciliation_report.txt
 ```
 
-(Or run without installing: `python -m score_reconciler.cli A.csv B.csv`.)
+**Mac / Linux:**
+```bash
+python3 scripts/generate_sample_data.py
+python3 -m score_reconciler.cli data/source_a.xlsx data/source_b.csv -o reconciliation_report.txt
+```
+
+(After `pip install -e .` the shortcut `score-reconciler ...` also works inside
+the activated venv on either platform.)
 
 ### Command reference
 
