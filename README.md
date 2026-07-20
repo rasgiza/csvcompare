@@ -166,16 +166,48 @@ the activated venv on either platform.)
 ### Command reference
 
 ```
-score-reconciler SOURCE_A SOURCE_B [-o OUTPUT] [-t TOLERANCE]
+score-reconciler SOURCE_A SOURCE_B [options]
+score-reconciler -a A1.csv A2.csv ... -b B1.csv B2.csv ... [options]
 ```
 
 | Argument / option | Description | Default |
 |-------------------|-------------|---------|
-| `SOURCE_A` | Path to Source A file (`.csv`/`.xlsx`) | required |
-| `SOURCE_B` | Path to Source B file (`.csv`/`.xlsx`) | required |
+| `SOURCE_A` | Single Source A file (`.csv`/`.tsv`/`.xlsx`) | required* |
+| `SOURCE_B` | Single Source B file (`.csv`/`.tsv`/`.xlsx`) | required* |
+| `-a, --source-a` | One or more Source A files (stacked together) | required* |
+| `-b, --source-b` | One or more Source B files (stacked together) | required* |
+| `--key` | Column to match rows on, for **both** sources | auto-detected |
+| `--key-a` / `--key-b` | Key column for just Source A / Source B | overrides `--key` |
+| `--value` | Column to compare, for **both** sources | auto-detected |
+| `--value-a` / `--value-b` | Value column for just Source A / Source B | overrides `--value` |
 | `-o, --output` | Report file path | `reconciliation_report.txt` |
-| `-t, --tolerance` | Allowed absolute score difference | `0.0` |
-| `-d, --duplicates` | How to collapse rows sharing a name (`last`, `first`, `sum`, `mean`, `max`, `min`) | `last` |
+| `-t, --tolerance` | Allowed absolute value difference | `0.0` |
+| `-d, --duplicates` | How to collapse rows sharing a key (`last`, `first`, `sum`, `mean`, `max`, `min`) | `last` |
+
+\* Provide **either** two positional files (`A.csv B.csv`) **or** the `-a`/`-b`
+flags for multiple files per source.
+
+### Flexible columns and multiple files
+
+The tool matches rows on a **key** column and compares a **value** column. Both
+can have any name, and the names can differ between the two sources.
+
+```bash
+# Auto-detect columns (Name/TotalScore and common aliases)
+score-reconciler A.csv B.csv
+
+# Custom columns, same name in both files
+score-reconciler A.csv B.csv --key Employee --value Salary
+
+# Different column names per source (same underlying data)
+score-reconciler A.csv B.csv --key-a Candidate --value-a Result \
+                             --key-b Student   --value-b Final
+
+# Several files on one (or both) sides - they are stacked before comparing
+score-reconciler -a jan.csv feb.csv mar.csv -b master.xlsx --value Points
+```
+
+Supported file types: `.csv`, `.tsv`, `.txt`, `.xlsx`, `.xls`, `.xlsm`.
 
 ### Duplicate / repeated names (automatic pivot)
 
@@ -199,13 +231,15 @@ The report shows how many duplicate rows were collapsed in each source.
 
 ### Using different column names
 
-If your files use headers other than `Name` / `TotalScore`, add the header
-(lowercase, no spaces) to the alias sets near the top of
+Use the `--key` / `--value` flags (or the per-source `--key-a`, `--key-b`,
+`--value-a`, `--value-b` variants) shown above — no code changes needed. If you
+want new headers to be **auto-detected** without flags, add them (lowercase, no
+spaces) to the alias sets near the top of
 [src/score_reconciler/loader.py](src/score_reconciler/loader.py):
 
 ```python
-_NAME_ALIASES = {"name", "fullname", "candidatename"}
-_SCORE_ALIASES = {"totalscore", "score", "total"}
+_NAME_ALIASES = {"name", "fullname", "candidatename", "candidate", "student", "id"}
+_SCORE_ALIASES = {"totalscore", "score", "total", "points", "amount", "value"}
 ```
 
 ### Tests

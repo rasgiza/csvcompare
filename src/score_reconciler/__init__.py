@@ -1,4 +1,8 @@
-"""score_reconciler: compare Name/TotalScore data between two sources and report mismatches."""
+"""score_reconciler: compare a key/value dataset between two sources and report mismatches.
+
+Columns can have any name, can differ between the two sources, and each source
+may span several files (they are concatenated before comparison).
+"""
 
 from .loader import load_source, LoaderError
 from .comparator import compare, ComparisonResult, Mismatch, RowDifference

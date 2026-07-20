@@ -1,9 +1,22 @@
 """File loading utilities.
 
-Reads a CSV or Excel file and extracts only the columns we care about
-(``Name`` and ``TotalScore``). Column matching is case-insensitive and
-tolerant of surrounding whitespace so that "total score", "TotalScore",
-and "TOTALSCORE " all resolve correctly.
+Reads one or more CSV/Excel files and extracts two columns: a **key** column
+(used to match rows between the two sources) and a **value** column (the number
+that is compared).
+
+Flexibility:
+- The key/value columns can have **any** header. If you don't say which columns
+  to use, common names are auto-detected (``Name`` and ``TotalScore`` plus a few
+  aliases).
+- The two sources can use **different** header names for the same data (e.g.
+  Source A calls the key ``Candidate`` while Source B calls it ``Student``);
+  just pass the right column name for each source.
+- A single source can be **several files**; they are concatenated (stacked)
+  before comparison, so 6-7 CSVs on one side is fine.
+
+Column matching is case-insensitive and tolerant of surrounding whitespace so
+``total score``, ``TotalScore`` and ``TOTALSCORE `` all resolve to the same
+column.
 """
 
 from __future__ import annotations
@@ -13,14 +26,15 @@ from typing import Iterable
 
 import pandas as pd
 
+# Internal canonical column names used everywhere downstream.
 NAME_COLUMN = "Name"
 SCORE_COLUMN = "TotalScore"
 
-# Accepted header aliases (normalized to lowercase, no spaces).
-_NAME_ALIASES = {"name", "fullname", "candidatename"}
-_SCORE_ALIASES = {"totalscore", "score", "total"}
+# Auto-detect aliases used only when the caller does not name the columns.
+_NAME_ALIASES = {"name", "fullname", "candidatename", "candidate", "student", "id"}
+_SCORE_ALIASES = {"totalscore", "score", "total", "points", "amount", "value"}
 
-_CSV_SUFFIXES = {".csv"}
+_CSV_SUFFIXES = {".csv", ".tsv", ".txt"}
 _EXCEL_SUFFIXES = {".xlsx", ".xls", ".xlsm"}
 
 
@@ -32,20 +46,43 @@ def _normalize(header: str) -> str:
     return "".join(str(header).lower().split())
 
 
-def _resolve_column(columns: Iterable[str], aliases: set[str], friendly: str) -> str:
+def _resolve_column(
+    columns: Iterable[str],
+    explicit: str | None,
+    aliases: set[str],
+    friendly: str,
+    file_name: str,
+) -> str:
+    """Find the source column to use.
+
+    If ``explicit`` is given, match that exact header (case/space-insensitive).
+    Otherwise fall back to the known ``aliases``.
+    """
+    columns = list(columns)
+    if explicit:
+        target = _normalize(explicit)
+        for col in columns:
+            if _normalize(col) == target:
+                return col
+        raise LoaderError(
+            f"Column '{explicit}' not found in {file_name}. "
+            f"Available columns: {columns}"
+        )
+
     for col in columns:
         if _normalize(col) in aliases:
             return col
     raise LoaderError(
-        f"Could not find a '{friendly}' column. "
-        f"Available columns: {list(columns)}"
+        f"Could not auto-detect a '{friendly}' column in {file_name}. "
+        f"Specify it explicitly (e.g. --key / --value). Available columns: {columns}"
     )
 
 
 def _read_frame(path: Path) -> pd.DataFrame:
     suffix = path.suffix.lower()
     if suffix in _CSV_SUFFIXES:
-        return pd.read_csv(path)
+        sep = "\t" if suffix == ".tsv" else None
+        return pd.read_csv(path, sep=sep, engine="python")
     if suffix in _EXCEL_SUFFIXES:
         return pd.read_excel(path)
     raise LoaderError(
@@ -54,13 +91,7 @@ def _read_frame(path: Path) -> pd.DataFrame:
     )
 
 
-def load_source(path: str | Path) -> pd.DataFrame:
-    """Load a source file and return a normalized DataFrame.
-
-    The returned frame has exactly two columns: ``Name`` (str, trimmed) and
-    ``TotalScore`` (numeric). Rows with a blank name are dropped.
-    """
-    path = Path(path)
+def _load_one(path: Path, key: str | None, value: str | None) -> pd.DataFrame:
     if not path.exists():
         raise LoaderError(f"File not found: {path}")
 
@@ -68,10 +99,10 @@ def load_source(path: str | Path) -> pd.DataFrame:
     if raw.empty:
         raise LoaderError(f"File is empty: {path.name}")
 
-    name_col = _resolve_column(raw.columns, _NAME_ALIASES, NAME_COLUMN)
-    score_col = _resolve_column(raw.columns, _SCORE_ALIASES, SCORE_COLUMN)
+    key_col = _resolve_column(raw.columns, key, _NAME_ALIASES, "key/name", path.name)
+    value_col = _resolve_column(raw.columns, value, _SCORE_ALIASES, "value/score", path.name)
 
-    frame = raw[[name_col, score_col]].copy()
+    frame = raw[[key_col, value_col]].copy()
     frame.columns = [NAME_COLUMN, SCORE_COLUMN]
 
     frame[NAME_COLUMN] = frame[NAME_COLUMN].astype(str).str.strip()
@@ -81,3 +112,37 @@ def load_source(path: str | Path) -> pd.DataFrame:
     frame = frame[frame[NAME_COLUMN].str.lower() != "nan"]
 
     return frame.reset_index(drop=True)
+
+
+def load_source(
+    paths: str | Path | Iterable[str | Path],
+    key: str | None = None,
+    value: str | None = None,
+) -> pd.DataFrame:
+    """Load one or more source files into a single normalized DataFrame.
+
+    Args:
+        paths: A single file path, or an iterable of paths. Multiple files are
+            stacked (concatenated) into one source.
+        key: Header of the column to match rows on. If ``None``, it is
+            auto-detected from common aliases.
+        value: Header of the numeric column to compare. If ``None``, it is
+            auto-detected from common aliases.
+
+    Returns:
+        DataFrame with exactly two columns: ``Name`` (the key, as trimmed text)
+        and ``TotalScore`` (the value, coerced to numeric). Rows with a blank
+        key are dropped.
+    """
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+    path_list = [Path(p) for p in paths]
+    if not path_list:
+        raise LoaderError("No source files were provided.")
+
+    frames = [_load_one(p, key, value) for p in path_list]
+    combined = pd.concat(frames, ignore_index=True)
+    if combined.empty:
+        names = ", ".join(p.name for p in path_list)
+        raise LoaderError(f"No usable rows found in: {names}")
+    return combined

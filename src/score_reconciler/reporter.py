@@ -16,18 +16,22 @@ def build_report(
     source_a_name: str,
     source_b_name: str,
     tolerance: float = 0.0,
+    key_label: str = "Name",
+    value_label: str = "Score",
 ) -> str:
     """Return the full QA report as a string."""
     lines: list[str] = []
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines.append(_LINE)
-    lines.append("SCORE RECONCILIATION REPORT")
+    lines.append("RECONCILIATION REPORT")
     lines.append(_LINE)
     lines.append(f"Generated : {stamp}")
     lines.append(f"Source A  : {source_a_name}")
     lines.append(f"Source B  : {source_b_name}")
-    lines.append(f"Tolerance : {tolerance} (score difference must be <= this to match)")
+    lines.append(f"Key column   : {key_label} (rows are matched on this)")
+    lines.append(f"Value column : {value_label} (this is compared)")
+    lines.append(f"Tolerance : {tolerance} (value difference must be <= this to match)")
     lines.append("")
 
     # ---- Summary -----------------------------------------------------------
@@ -35,12 +39,12 @@ def build_report(
     lines.append(_SUBLINE)
     lines.append(f"Rows in Source A         : {result.total_a}")
     lines.append(f"Rows in Source B         : {result.total_b}")
-    lines.append(f"Duplicate strategy       : {result.strategy} (rows sharing a name are collapsed)")
-    lines.append(f"Unique names in Source A : {result.unique_a} ({result.duplicates_a} duplicate row(s) collapsed)")
-    lines.append(f"Unique names in Source B : {result.unique_b} ({result.duplicates_b} duplicate row(s) collapsed)")
+    lines.append(f"Duplicate strategy       : {result.strategy} (rows sharing a key are collapsed)")
+    lines.append(f"Unique keys in Source A  : {result.unique_a} ({result.duplicates_a} duplicate row(s) collapsed)")
+    lines.append(f"Unique keys in Source B  : {result.unique_b} ({result.duplicates_b} duplicate row(s) collapsed)")
     lines.append(f"Row counts match         : {'YES' if result.row_count_matches else 'NO'}")
-    lines.append(f"Names matched cleanly    : {result.matched}")
-    lines.append(f"Score mismatches         : {len(result.mismatches)}")
+    lines.append(f"Keys matched cleanly     : {result.matched}")
+    lines.append(f"Value mismatches         : {len(result.mismatches)}")
     lines.append(f"Only in Source A         : {len(result.only_in_a)}")
     lines.append(f"Only in Source B         : {len(result.only_in_b)}")
     lines.append("")
@@ -49,11 +53,11 @@ def build_report(
     lines.append(f"OVERALL RESULT: {verdict}")
     lines.append("")
 
-    # ---- Score mismatches --------------------------------------------------
-    lines.append("SCORE MISMATCHES (name matched, score difference > tolerance)")
+    # ---- Value mismatches --------------------------------------------------
+    lines.append(f"VALUE MISMATCHES ({key_label} matched, {value_label} difference > tolerance)")
     lines.append(_SUBLINE)
     if result.mismatches:
-        lines.append(f"{'Name':<30}{'Source A':>12}{'Source B':>12}{'Diff':>12}")
+        lines.append(f"{key_label:<30}{'Source A':>12}{'Source B':>12}{'Diff':>12}")
         for m in result.mismatches:
             lines.append(
                 f"{m.name:<30}{m.score_a:>12.2f}{m.score_b:>12.2f}{m.difference:>12.2f}"
@@ -66,7 +70,7 @@ def build_report(
     lines.append("ROWS ONLY IN SOURCE A (missing from Source B)")
     lines.append(_SUBLINE)
     if result.only_in_a:
-        lines.append(f"{'Name':<30}{'Score':>12}")
+        lines.append(f"{key_label:<30}{value_label:>12}")
         for r in result.only_in_a:
             lines.append(f"{r.name:<30}{r.score:>12.2f}")
     else:
@@ -77,7 +81,7 @@ def build_report(
     lines.append("ROWS ONLY IN SOURCE B (missing from Source A)")
     lines.append(_SUBLINE)
     if result.only_in_b:
-        lines.append(f"{'Name':<30}{'Score':>12}")
+        lines.append(f"{key_label:<30}{value_label:>12}")
         for r in result.only_in_b:
             lines.append(f"{r.name:<30}{r.score:>12.2f}")
     else:
@@ -88,21 +92,21 @@ def build_report(
     lines.append("QA NOTES")
     lines.append(_SUBLINE)
     if not result.has_issues:
-        lines.append("All names and scores reconcile. No further action needed.")
+        lines.append("All keys and values reconcile. No further action needed.")
     else:
         if result.mismatches:
             lines.append(
-                f"- {len(result.mismatches)} name(s) have differing scores. Verify which "
-                "source is authoritative and confirm the correct TotalScore."
+                f"- {len(result.mismatches)} key(s) have differing {value_label} values. Verify "
+                "which source is authoritative and confirm the correct value."
             )
         if result.only_in_a:
             lines.append(
-                f"- {len(result.only_in_a)} name(s) exist only in Source A. This may be "
-                "expected if Source A covers a wider date range; confirm the range."
+                f"- {len(result.only_in_a)} key(s) exist only in Source A. This may be "
+                "expected if Source A covers a wider range; confirm the range."
             )
         if result.only_in_b:
             lines.append(
-                f"- {len(result.only_in_b)} name(s) exist only in Source B. Investigate why "
+                f"- {len(result.only_in_b)} key(s) exist only in Source B. Investigate why "
                 "these are missing from Source A."
             )
     lines.append(_LINE)
