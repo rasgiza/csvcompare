@@ -146,3 +146,73 @@ def load_source(
         names = ", ".join(p.name for p in path_list)
         raise LoaderError(f"No usable rows found in: {names}")
     return combined
+
+
+# Canonical key column name used by the mapped (multi-column) path.
+KEY_COLUMN = "__key__"
+
+
+def _load_one_mapped(path: Path, key_col_name: str, columns, side: str) -> "pd.DataFrame":
+    """Load one file for the mapped path: key + every mapped column for ``side``.
+
+    ``columns`` is a list of ``mapping.ColumnMap``. ``side`` is ``"a"`` or
+    ``"b"`` and selects which source header / unit each column uses. Values are
+    coerced to numeric and unit-converted to the column's ``to_unit``.
+    """
+    if not path.exists():
+        raise LoaderError(f"File not found: {path}")
+
+    raw = _read_frame(path)
+    if raw.empty:
+        raise LoaderError(f"File is empty: {path.name}")
+
+    key_col = _resolve_column(raw.columns, key_col_name, set(), "key", path.name)
+    data = {KEY_COLUMN: raw[key_col].astype(str).str.strip()}
+
+    for col in columns:
+        header = col.source_a if side == "a" else col.source_b
+        multiplier = col.multiplier_a() if side == "a" else col.multiplier_b()
+        source_col = _resolve_column(raw.columns, header, set(), col.name, path.name)
+        values = pd.to_numeric(raw[source_col], errors="coerce")
+        data[col.name] = values * multiplier
+
+    frame = pd.DataFrame(data)
+    frame = frame[frame[KEY_COLUMN] != ""]
+    frame = frame[frame[KEY_COLUMN].str.lower() != "nan"]
+    return frame.reset_index(drop=True)
+
+
+def load_mapped(
+    paths: str | Path | Iterable[str | Path],
+    mapping,
+    side: str,
+) -> "pd.DataFrame":
+    """Load one or more files for a mapped (multi-column) comparison.
+
+    Args:
+        paths: A single path or an iterable of paths (stacked together).
+        mapping: A ``mapping.Mapping`` describing the key, columns, and units.
+        side: ``"a"`` or ``"b"`` - which source's headers/units to read.
+
+    Returns:
+        DataFrame with a canonical key column plus one column per mapped metric
+        (named ``ColumnMap.name``), numeric and unit-converted.
+    """
+    if side not in ("a", "b"):
+        raise LoaderError("side must be 'a' or 'b'.")
+    key_col_name = mapping.key_a if side == "a" else mapping.key_b
+
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+    path_list = [Path(p) for p in paths]
+    if not path_list:
+        raise LoaderError("No source files were provided.")
+
+    frames = [
+        _load_one_mapped(p, key_col_name, mapping.columns, side) for p in path_list
+    ]
+    combined = pd.concat(frames, ignore_index=True)
+    if combined.empty:
+        names = ", ".join(p.name for p in path_list)
+        raise LoaderError(f"No usable rows found in: {names}")
+    return combined

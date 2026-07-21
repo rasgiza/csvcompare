@@ -6,9 +6,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from .comparator import DUPLICATE_STRATEGIES, compare
-from .loader import LoaderError, load_source
-from .reporter import build_report, write_report
+from .comparator import DUPLICATE_STRATEGIES, compare, compare_mapped
+from .loader import LoaderError, load_mapped, load_source
+from .mapping import Mapping, MappingError
+from .reporter import build_mapped_report, build_report, write_report
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -64,6 +65,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--value-a", help="Value column name in Source A (overrides --value).")
     parser.add_argument("--value-b", help="Value column name in Source B (overrides --value).")
     parser.add_argument(
+        "-m",
+        "--mapping",
+        help=(
+            "Path to a JSON mapping file for multi-column reconciliation: maps "
+            "differently-named columns across sources, converts time units "
+            "(sec/min/hour/day) to a common unit, and pivots (groups) many rows "
+            "per key into one. Overrides --key/--value single-column mode."
+        ),
+    )
+    parser.add_argument(
         "-o",
         "--output",
         default="reconciliation_report.txt",
@@ -109,6 +120,29 @@ def main(argv: list[str] | None = None) -> int:
             "(A.csv B.csv) or the -a/-b flags for multiple files."
         )
 
+    # ---- Mapped (multi-column) mode ---------------------------------------
+    if args.mapping:
+        try:
+            mapping = Mapping.from_file(args.mapping)
+            frame_a = load_mapped(a_files, mapping, side="a")
+            frame_b = load_mapped(b_files, mapping, side="b")
+        except (LoaderError, MappingError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+
+        result = compare_mapped(frame_a, frame_b, mapping)
+        report = build_mapped_report(
+            result,
+            mapping,
+            source_a_name=_describe(a_files),
+            source_b_name=_describe(b_files),
+        )
+        out_path = write_report(report, args.output)
+        print(report)
+        print(f"\nReport written to: {out_path.resolve()}")
+        return 1 if result.has_issues else 0
+
+    # ---- Single-column mode -----------------------------------------------
     key_a = args.key_a or args.key
     key_b = args.key_b or args.key
     value_a = args.value_a or args.value

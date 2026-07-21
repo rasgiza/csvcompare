@@ -1,0 +1,19 @@
+{
+  "key": { "a": "Name", "b": "foksName" },
+  "aggregate": "sum",
+  "tolerance": 0.0,
+  "columns": [
+    { "name": "difhse",   "a": "difhse", "b": "difhse" },
+    { "name": "shcoes",   "a": "shcoes", "b": "shcoes" },
+    { "name": "fising%",  "a": "fising%", "b": "fising%" },
+    {
+      "name": "Duration",
+      "a": "elapsed",
+      "b": "duration",
+      "unit_a": "min",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 0.5
+    }
+  ]
+}

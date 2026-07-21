@@ -180,6 +180,7 @@ score-reconciler -a A1.csv A2.csv ... -b B1.csv B2.csv ... [options]
 | `--key-a` / `--key-b` | Key column for just Source A / Source B | overrides `--key` |
 | `--value` | Column to compare, for **both** sources | auto-detected |
 | `--value-a` / `--value-b` | Value column for just Source A / Source B | overrides `--value` |
+| `-m, --mapping` | JSON mapping file for multi-column mode (name map + unit conversion + pivot) | none |
 | `-o, --output` | Report file path | `reconciliation_report.txt` |
 | `-t, --tolerance` | Allowed absolute value difference | `0.0` |
 | `-d, --duplicates` | How to collapse rows sharing a key (`last`, `first`, `sum`, `mean`, `max`, `min`) | `last` |
@@ -208,6 +209,55 @@ score-reconciler -a jan.csv feb.csv mar.csv -b master.xlsx --value Points
 ```
 
 Supported file types: `.csv`, `.tsv`, `.txt`, `.xlsx`, `.xls`, `.xlsm`.
+
+### Multi-column reconciliation with a mapping file (`--mapping`)
+
+For richer cases — **many columns at once**, **different column names per
+source**, **different units** (e.g. Source A in minutes vs. Kibana in seconds),
+and **many rows per key that must be grouped/pivoted** — pass a JSON **mapping**
+file with `-m/--mapping`. It carries the name map, unit conversion, and
+aggregation in one place, so no code changes per dataset.
+
+```bash
+score-reconciler A.csv B.csv --mapping examples/mapping.example.json
+```
+
+Mapping schema:
+
+```jsonc
+{
+  "key":       { "a": "Name",   "b": "foksName" },  // how to match rows (per source)
+  "aggregate": "sum",                                // pivot: collapse many rows per key
+  "tolerance": 0.0,                                  // global tolerance
+  "columns": [
+    { "name": "difhse",  "a": "difhse",  "b": "difhse" },
+    { "name": "shcoes",  "a": "shcoes",  "b": "shcoes" },
+    { "name": "fising%", "a": "fising%", "b": "fising%" },
+    { "name": "Duration", "a": "elapsed", "b": "duration",
+      "unit_a": "min", "unit_b": "sec", "to_unit": "sec",  // convert BOTH to seconds
+      "tolerance": 0.5 }                                    // optional per-column tolerance
+  ]
+}
+```
+
+What each part does:
+
+- **`key.a` / `key.b`** — the key column name in each source (they can differ,
+  e.g. `Name` vs `foksName`). Rows are matched on this.
+- **`columns[]`** — every metric to compare. `a` is the column header in Source
+  A, `b` is the header in Source B, `name` is the label shown in the report.
+- **`aggregate`** — how to **pivot**: when a key appears on several rows (e.g.
+  three Kibana rows for `desm001`), they are collapsed to one row before
+  comparing. `sum` totals each column so the grouped rows equal the single row
+  in the other source. Also: `mean`, `last`, `first`, `max`, `min`, `count`.
+- **Unit conversion** — set `unit_a`, `unit_b`, and `to_unit` on a column to
+  normalize time units. Supported: `ms`, `sec`, `min`, `hour`, `day` (and common
+  spellings). Both sides are converted to `to_unit` before comparison, so
+  `2 min` in A lines up with `120 sec` in B.
+- **`tolerance`** — global, with an optional per-column override.
+
+The report lists the resolved column map, how many rows were pivoted per source,
+and any per-cell mismatches (which key, which column, both values, and the diff).
 
 ### Duplicate / repeated names (automatic pivot)
 

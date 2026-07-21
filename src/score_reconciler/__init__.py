@@ -4,18 +4,35 @@ Columns can have any name, can differ between the two sources, and each source
 may span several files (they are concatenated before comparison).
 """
 
-from .loader import load_source, LoaderError
-from .comparator import compare, ComparisonResult, Mismatch, RowDifference
-from .reporter import build_report, write_report
+from .loader import load_source, load_mapped, LoaderError
+from .comparator import (
+    compare,
+    compare_mapped,
+    ComparisonResult,
+    MappedResult,
+    Mismatch,
+    CellMismatch,
+    RowDifference,
+)
+from .mapping import Mapping, MappingError, ColumnMap
+from .reporter import build_report, build_mapped_report, write_report
 
 __all__ = [
     "load_source",
+    "load_mapped",
     "LoaderError",
     "compare",
+    "compare_mapped",
     "ComparisonResult",
+    "MappedResult",
     "Mismatch",
+    "CellMismatch",
     "RowDifference",
+    "Mapping",
+    "MappingError",
+    "ColumnMap",
     "build_report",
+    "build_mapped_report",
     "write_report",
 ]
 
