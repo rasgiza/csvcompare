@@ -102,3 +102,42 @@ def test_cell_mismatch_flagged(tmp_path):
     assert len(result.mismatches) == 1
     assert result.mismatches[0].column == "shcoes"
     assert result.mismatches[0].difference == -5.0
+
+
+def test_ms_to_sec_conversion_applied_on_load(tmp_path):
+    # 172309.37 ms must load as 172.30937 sec (divided by 1000), not passed raw.
+    a = _write_csv(tmp_path / "a.csv", ["Name", "elapsed"], [("x", 172309.37)])
+    mapping = Mapping.from_dict(
+        {
+            "key": {"a": "Name", "b": "foksName"},
+            "columns": [
+                {
+                    "name": "Elapsed",
+                    "a": "elapsed",
+                    "b": "elapsed",
+                    "unit_a": "ms",
+                    "unit_b": "sec",
+                    "to_unit": "sec",
+                }
+            ],
+        }
+    )
+    frame_a = load_mapped(a, mapping, side="a")
+    assert frame_a["Elapsed"].iloc[0] == 172309.37 / 1000.0  # == 172.30937
+
+
+def test_missing_to_unit_means_no_conversion(tmp_path):
+    # Regression: a unit declared without to_unit must NOT convert (multiplier 1.0).
+    a = _write_csv(tmp_path / "a.csv", ["Name", "elapsed"], [("x", 5000)])
+    mapping = Mapping.from_dict(
+        {
+            "key": {"a": "Name", "b": "foksName"},
+            "columns": [
+                {"name": "Elapsed", "a": "elapsed", "b": "elapsed", "unit_a": "ms"}
+            ],
+        }
+    )
+    col = mapping.columns[0]
+    assert col.multiplier_a() == 1.0  # no to_unit -> passthrough
+    frame_a = load_mapped(a, mapping, side="a")
+    assert frame_a["Elapsed"].iloc[0] == 5000  # unchanged, proving the trap
