@@ -163,6 +163,28 @@ def build_mapped_report(
     lines.append(f"OVERALL RESULT: {verdict}")
     lines.append("")
 
+    # ---- Full comparison (after pivot) -------------------------------------
+    # Every matched key/column shown side by side: Source A vs the pivoted
+    # (grouped) Source B, with a MATCH/MISMATCH status for each cell.
+    comparisons = getattr(result, "comparisons", [])
+    lines.append("FULL COMPARISON (Source A vs Source B after pivot)")
+    lines.append(_SUBLINE)
+    if comparisons:
+        lines.append(
+            f"{'Key':<24}{'Column':<18}{'Source A':>14}{'Source B':>14}{'Diff':>14}  Status"
+        )
+        for c in comparisons:
+            va = "n/a" if c.value_a != c.value_a else f"{c.value_a:.2f}"  # NaN check
+            vb = "n/a" if c.value_b != c.value_b else f"{c.value_b:.2f}"
+            diff = "n/a" if (c.value_a != c.value_a or c.value_b != c.value_b) else f"{c.difference:.2f}"
+            status = "MATCH" if c.matched else "MISMATCH"
+            lines.append(
+                f"{c.key:<24}{c.column:<18}{va:>14}{vb:>14}{diff:>14}  {status}"
+            )
+    else:
+        lines.append("No keys were present in both sources to compare.")
+    lines.append("")
+
     # ---- Cell mismatches ---------------------------------------------------
     lines.append("CELL MISMATCHES (key matched, a column value differs beyond tolerance)")
     lines.append(_SUBLINE)

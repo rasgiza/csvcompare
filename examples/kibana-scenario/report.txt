@@ -1,7 +1,7 @@
 ======================================================================
 RECONCILIATION REPORT (mapped, multi-column)
 ======================================================================
-Generated : 2026-07-21 17:04:19
+Generated : 2026-07-22 11:36:52
 Source A  : source_a_ops.csv
 Source B  : kibana_logs.csv
 Key       : A='JobName'  B='kib_job'
@@ -28,6 +28,25 @@ Keys only in Source A    : 1
 Keys only in Source B    : 1
 
 OVERALL RESULT: FAIL - issues require review
+
+FULL COMPARISON (Source A vs Source B after pivot)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff  Status
+etl_customers           RowsIn                   8000.00       8000.00          0.00  MATCH
+etl_customers           RowsRejected                5.00          4.00          1.00  MISMATCH
+etl_customers           ExtractTime               180.00        180.00          0.00  MATCH
+etl_customers           LoadTime                  900.00        900.00          0.00  MATCH
+etl_customers           ArchiveWindow          604800.00     604800.00          0.00  MATCH
+etl_inventory           RowsIn                  20000.00      20000.00          0.00  MATCH
+etl_inventory           RowsRejected                0.00          0.00          0.00  MATCH
+etl_inventory           ExtractTime               600.00        600.00          0.00  MATCH
+etl_inventory           LoadTime                 3600.00       3600.00          0.00  MATCH
+etl_inventory           ArchiveWindow         1209600.00    1209600.00          0.00  MATCH
+etl_orders              RowsIn                  15000.00      15000.00          0.00  MATCH
+etl_orders              RowsRejected               12.00         12.00          0.00  MATCH
+etl_orders              ExtractTime               300.00        300.00          0.00  MATCH
+etl_orders              LoadTime                 1800.00       1800.00          0.00  MATCH
+etl_orders              ArchiveWindow         2592000.00    2592000.00          0.00  MATCH
 
 CELL MISMATCHES (key matched, a column value differs beyond tolerance)
 ----------------------------------------------------------------------

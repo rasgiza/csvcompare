@@ -12,6 +12,7 @@ from .comparator import (
     MappedResult,
     Mismatch,
     CellMismatch,
+    CellComparison,
     RowDifference,
 )
 from .mapping import Mapping, MappingError, ColumnMap
@@ -27,6 +28,7 @@ __all__ = [
     "MappedResult",
     "Mismatch",
     "CellMismatch",
+    "CellComparison",
     "RowDifference",
     "Mapping",
     "MappingError",

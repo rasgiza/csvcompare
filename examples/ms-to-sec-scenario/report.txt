@@ -1,7 +1,7 @@
 ======================================================================
 RECONCILIATION REPORT (mapped, multi-column)
 ======================================================================
-Generated : 2026-07-22 09:06:48
+Generated : 2026-07-22 11:39:08
 Source A  : source_a.csv
 Source B  : source_b.csv
 Key       : A='fixName'  B='Name'
@@ -29,6 +29,22 @@ Keys only in Source A    : 0
 Keys only in Source B    : 0
 
 OVERALL RESULT: FAIL - issues require review
+
+FULL COMPARISON (Source A vs Source B after pivot)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff  Status
+svcA                    Percentile                 95.00         95.00          0.00  MATCH
+svcA                    Hits                        3.00          3.00          0.00  MATCH
+svcA                    Runtime                     6.00          6.00          0.00  MATCH
+svcA                    Downtime                    1.20          1.20         -0.00  MATCH
+svcA                    RangeTime                   9.00          9.00          0.00  MATCH
+svcA                    AnswerTime                  1.50          1.50          0.00  MATCH
+svcB                    Percentile                 88.00         88.00          0.00  MATCH
+svcB                    Hits                        2.00          2.00          0.00  MATCH
+svcB                    Runtime                    10.00          8.00          2.00  MISMATCH
+svcB                    Downtime                    0.80          0.80          0.00  MATCH
+svcB                    RangeTime                   4.00          4.00          0.00  MATCH
+svcB                    AnswerTime                  1.00          1.00          0.00  MATCH
 
 CELL MISMATCHES (key matched, a column value differs beyond tolerance)
 ----------------------------------------------------------------------

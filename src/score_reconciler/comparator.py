@@ -177,6 +177,30 @@ class CellMismatch:
 
 
 @dataclass
+class CellComparison:
+    """One matched key/column after the pivot, whether it matches or not.
+
+    Unlike ``CellMismatch`` (which only records failures), this captures every
+    compared cell so the report can show a full side-by-side of Source A vs the
+    pivoted Source B, marking each MATCH or MISMATCH.
+    """
+
+    key: str
+    column: str
+    value_a: float
+    value_b: float
+    matched: bool
+
+    @property
+    def difference(self) -> float:
+        return self.value_a - self.value_b
+
+    @property
+    def abs_difference(self) -> float:
+        return abs(self.difference)
+
+
+@dataclass
 class MappedResult:
     total_a: int
     total_b: int
@@ -188,6 +212,7 @@ class MappedResult:
     aggregate: str
     matched_keys: int = 0
     mismatches: list[CellMismatch] = field(default_factory=list)
+    comparisons: list[CellComparison] = field(default_factory=list)
     only_in_a: list[str] = field(default_factory=list)
     only_in_b: list[str] = field(default_factory=list)
 
@@ -260,7 +285,13 @@ def compare_mapped(
             va = float(va) if pd.notna(va) else float("nan")
             vb = float(vb) if pd.notna(vb) else float("nan")
             # NaN on either side, or a difference beyond tolerance, is a mismatch.
-            if pd.isna(va) or pd.isna(vb) or abs(va - vb) > tol[name]:
+            cell_matched = not (pd.isna(va) or pd.isna(vb) or abs(va - vb) > tol[name])
+            result.comparisons.append(
+                CellComparison(
+                    key=str(key), column=name, value_a=va, value_b=vb, matched=cell_matched
+                )
+            )
+            if not cell_matched:
                 result.mismatches.append(
                     CellMismatch(key=str(key), column=name, value_a=va, value_b=vb)
                 )
