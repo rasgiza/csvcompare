@@ -1,0 +1,23 @@
+{
+  "key": { "a": "fixName", "b": "Name" },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    { "name": "Percentile", "a": "percentailil", "b": "percentai" },
+
+    { "name": "Hits", "a": "Hits", "b": "Hitsfix",
+      "unit_a": "ms", "unit_b": "sec", "to_unit": "sec", "tolerance": 1.0 },
+
+    { "name": "Runtime", "a": "RuntimeMin", "b": "Runtimrange",
+      "unit_a": "ms", "unit_b": "sec", "to_unit": "sec", "tolerance": 1.0 },
+
+    { "name": "Downtime", "a": "DowntimeHr", "b": "Downtimerange",
+      "unit_a": "ms", "unit_b": "sec", "to_unit": "sec", "tolerance": 1.0 },
+
+    { "name": "RangeTime", "a": "rangdetimefox", "b": "rangdetime",
+      "unit_a": "ms", "unit_b": "sec", "to_unit": "sec", "tolerance": 1.0 },
+
+    { "name": "AnswerTime", "a": "dishanswertime", "b": "dishanswervistime",
+      "unit_a": "ms", "unit_b": "sec", "to_unit": "sec", "tolerance": 1.0 }
+  ]
+}
