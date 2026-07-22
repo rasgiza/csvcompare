@@ -1,0 +1,50 @@
+======================================================================
+RECONCILIATION REPORT (mapped, multi-column)
+======================================================================
+Generated : 2026-07-21 17:04:19
+Source A  : source_a_ops.csv
+Source B  : kibana_logs.csv
+Key       : A='JobName'  B='kib_job'
+Aggregate : sum (rows sharing a key are collapsed/pivoted)
+
+COLUMN MAP
+----------------------------------------------------------------------
+Report name         Source A          Source B          Unit A>Unit B      Tol
+RowsIn              RowsIn            rows_in           -                 0.50
+RowsRejected        RowsRejected      rows_rejected     -                 0.50
+ExtractTime         ExtractTime       extract_secs      min>sec,sec>sec   1.00
+LoadTime            LoadTime          load_secs         hour>sec,sec>sec  1.00
+ArchiveWindow       ArchiveWindow     archive_secs      day>sec,sec>sec   1.00
+
+SUMMARY
+----------------------------------------------------------------------
+Rows in Source A         : 4
+Rows in Source B         : 10
+Unique keys in Source A  : 4 (0 row(s) collapsed)
+Unique keys in Source B  : 4 (6 row(s) collapsed)
+Keys matched cleanly     : 2
+Cell mismatches          : 1
+Keys only in Source A    : 1
+Keys only in Source B    : 1
+
+OVERALL RESULT: FAIL - issues require review
+
+CELL MISMATCHES (key matched, a column value differs beyond tolerance)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff
+etl_customers           RowsRejected                5.00          4.00          1.00
+
+KEYS ONLY IN SOURCE A (missing from Source B)
+----------------------------------------------------------------------
+etl_returns
+
+KEYS ONLY IN SOURCE B (missing from Source A)
+----------------------------------------------------------------------
+etl_audit
+
+QA NOTES
+----------------------------------------------------------------------
+- 1 cell value(s) differ. Check the column map (names/units) and confirm which source is authoritative.
+- 1 key(s) exist only in Source A.
+- 1 key(s) exist only in Source B.
+======================================================================

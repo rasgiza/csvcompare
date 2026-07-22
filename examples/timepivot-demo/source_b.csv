@@ -1,0 +1,10 @@
+svc,hit_count,runtime_sec,downtime_sec
+alpha,100,100,1200
+alpha,100,100,1200
+alpha,100,100,1200
+beta,70,60,900
+beta,70,60,900
+gamma,100,150,1800
+gamma,100,150,1800
+gamma,100,150,1800
+gamma,100,150,1800

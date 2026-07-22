@@ -1,0 +1,20 @@
+{
+  "key": { "a": "Service", "b": "svc" },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    { "name": "Hits", "a": "Hits", "b": "hit_count" },
+    {
+      "name": "Runtime",
+      "a": "RuntimeMin", "b": "runtime_sec",
+      "unit_a": "min", "unit_b": "sec", "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Downtime",
+      "a": "DowntimeHr", "b": "downtime_sec",
+      "unit_a": "hour", "unit_b": "sec", "to_unit": "sec",
+      "tolerance": 1.0
+    }
+  ]
+}

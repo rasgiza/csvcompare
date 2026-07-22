@@ -1,0 +1,27 @@
+{
+  "key": { "a": "JobName", "b": "kib_job" },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    { "name": "RowsIn",        "a": "RowsIn",        "b": "rows_in" },
+    { "name": "RowsRejected",  "a": "RowsRejected",  "b": "rows_rejected" },
+    {
+      "name": "ExtractTime",
+      "a": "ExtractTime", "b": "extract_secs",
+      "unit_a": "min", "unit_b": "sec", "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "LoadTime",
+      "a": "LoadTime", "b": "load_secs",
+      "unit_a": "hour", "unit_b": "sec", "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "ArchiveWindow",
+      "a": "ArchiveWindow", "b": "archive_secs",
+      "unit_a": "day", "unit_b": "sec", "to_unit": "sec",
+      "tolerance": 1.0
+    }
+  ]
+}

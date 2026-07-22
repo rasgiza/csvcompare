@@ -1,0 +1,46 @@
+======================================================================
+RECONCILIATION REPORT (mapped, multi-column)
+======================================================================
+Generated : 2026-07-21 23:55:16
+Source A  : source_a.csv
+Source B  : source_b.csv
+Key       : A='Service'  B='svc'
+Aggregate : sum (rows sharing a key are collapsed/pivoted)
+
+COLUMN MAP
+----------------------------------------------------------------------
+Report name         Source A          Source B          Unit A>Unit B      Tol
+Hits                Hits              hit_count         -                 0.50
+Runtime             RuntimeMin        runtime_sec       min>sec,sec>sec   1.00
+Downtime            DowntimeHr        downtime_sec      hour>sec,sec>sec  1.00
+
+SUMMARY
+----------------------------------------------------------------------
+Rows in Source A         : 3
+Rows in Source B         : 9
+Unique keys in Source A  : 3 (0 row(s) collapsed)
+Unique keys in Source B  : 3 (6 row(s) collapsed)
+Keys matched cleanly     : 2
+Cell mismatches          : 1
+Keys only in Source A    : 0
+Keys only in Source B    : 0
+
+OVERALL RESULT: FAIL - issues require review
+
+CELL MISMATCHES (key matched, a column value differs beyond tolerance)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff
+beta                    Hits                      150.00        140.00         10.00
+
+KEYS ONLY IN SOURCE A (missing from Source B)
+----------------------------------------------------------------------
+None.
+
+KEYS ONLY IN SOURCE B (missing from Source A)
+----------------------------------------------------------------------
+None.
+
+QA NOTES
+----------------------------------------------------------------------
+- 1 cell value(s) differ. Check the column map (names/units) and confirm which source is authoritative.
+======================================================================

@@ -1,0 +1,11 @@
+kib_job,rows_in,rows_rejected,extract_secs,load_secs,archive_secs
+etl_orders,5000,4,100,600,864000
+etl_orders,5000,4,100,600,864000
+etl_orders,5000,4,100,600,864000
+etl_customers,4000,2,90,450,302400
+etl_customers,4000,2,90,450,302400
+etl_inventory,5000,0,150,900,302400
+etl_inventory,5000,0,150,900,302400
+etl_inventory,5000,0,150,900,302400
+etl_inventory,5000,0,150,900,302400
+etl_audit,300,0,30,120,86400
