@@ -134,16 +134,35 @@ def build_mapped_report(
     lines.append(f"Aggregate : {mapping.aggregate} (rows sharing a key are collapsed/pivoted)")
     lines.append("")
 
+    # ---- Adaptive column widths --------------------------------------------
+    # Long report names like "Total Inspection Time" must not overflow their
+    # slot and shove the following columns out of alignment. Size each text
+    # column to its widest value (with a sensible minimum) plus padding.
+    def _w(values, minimum: int, pad: int = 2) -> int:
+        longest = max((len(str(v)) for v in values), default=0)
+        return max(minimum, longest + pad)
+
+    name_w = _w([c.name for c in mapping.columns] + ["Report name", "Column"], 20)
+    src_a_w = _w([c.source_a for c in mapping.columns] + ["Source A"], 18)
+    src_b_w = _w([c.source_b for c in mapping.columns] + ["Source B"], 18)
+    key_w = _w(
+        [c.key for c in getattr(result, "comparisons", [])]
+        + list(result.only_in_a)
+        + list(result.only_in_b)
+        + ["Key"],
+        24,
+    )
+
     # ---- Column map --------------------------------------------------------
     lines.append("COLUMN MAP")
     lines.append(_SUBLINE)
-    lines.append(f"{'Report name':<20}{'Source A':<18}{'Source B':<18}{'Unit A>Unit B':<16}{'Tol':>6}")
+    lines.append(f"{'Report name':<{name_w}}{'Source A':<{src_a_w}}{'Source B':<{src_b_w}}{'Unit A>Unit B':<16}{'Tol':>6}")
     for col in mapping.columns:
         unit = "-"
         if col.to_unit and (col.unit_a or col.unit_b):
             unit = f"{col.unit_a or '?'}>{col.to_unit},{col.unit_b or '?'}>{col.to_unit}"
         tol = mapping.tolerance_for(col)
-        lines.append(f"{col.name:<20}{col.source_a:<18}{col.source_b:<18}{unit:<16}{tol:>6.2f}")
+        lines.append(f"{col.name:<{name_w}}{col.source_a:<{src_a_w}}{col.source_b:<{src_b_w}}{unit:<16}{tol:>6.2f}")
     lines.append("")
 
     # ---- Summary -----------------------------------------------------------
@@ -171,7 +190,7 @@ def build_mapped_report(
     lines.append(_SUBLINE)
     if comparisons:
         lines.append(
-            f"{'Key':<24}{'Column':<18}{'Source A':>14}{'Source B':>14}{'Diff':>14}  Status"
+            f"{'Key':<{key_w}}{'Column':<{name_w}}{'Source A':>14}{'Source B':>14}{'Diff':>14}  Status"
         )
         for c in comparisons:
             va = "n/a" if c.value_a != c.value_a else f"{c.value_a:.2f}"  # NaN check
@@ -179,7 +198,7 @@ def build_mapped_report(
             diff = "n/a" if (c.value_a != c.value_a or c.value_b != c.value_b) else f"{c.difference:.2f}"
             status = "MATCH" if c.matched else "MISMATCH"
             lines.append(
-                f"{c.key:<24}{c.column:<18}{va:>14}{vb:>14}{diff:>14}  {status}"
+                f"{c.key:<{key_w}}{c.column:<{name_w}}{va:>14}{vb:>14}{diff:>14}  {status}"
             )
     else:
         lines.append("No keys were present in both sources to compare.")
@@ -189,10 +208,10 @@ def build_mapped_report(
     lines.append("CELL MISMATCHES (key matched, a column value differs beyond tolerance)")
     lines.append(_SUBLINE)
     if result.mismatches:
-        lines.append(f"{'Key':<24}{'Column':<18}{'Source A':>14}{'Source B':>14}{'Diff':>14}")
+        lines.append(f"{'Key':<{key_w}}{'Column':<{name_w}}{'Source A':>14}{'Source B':>14}{'Diff':>14}")
         for m in result.mismatches:
             lines.append(
-                f"{m.key:<24}{m.column:<18}{m.value_a:>14.2f}{m.value_b:>14.2f}{m.difference:>14.2f}"
+                f"{m.key:<{key_w}}{m.column:<{name_w}}{m.value_a:>14.2f}{m.value_b:>14.2f}{m.difference:>14.2f}"
             )
     else:
         lines.append("None.")

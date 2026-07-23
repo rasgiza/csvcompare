@@ -1,0 +1,204 @@
+======================================================================
+RECONCILIATION REPORT (mapped, multi-column)
+======================================================================
+Generated : 2026-07-23 11:08:10
+Source A  : source_a.csv
+Source B  : warehouse_detail.csv
+Key       : A='RegionCode'  B='RegionId'
+Aggregate : sum (rows sharing a key are collapsed/pivoted)
+
+COLUMN MAP
+----------------------------------------------------------------------
+Report name            Source A          Source B           Unit A>Unit B      Tol
+Widgets                WidgetsBuilt      nWidgetCount       -                 0.50
+Gadgets                GadgetsBuilt      nGadgetCount       -                 0.50
+Defects                DefectCount       nDefects           -                 0.50
+Returns                ReturnCount       nReturns           -                 0.50
+Shipments              ShipmentCount     nShipments         -                 0.50
+Total Build Time       BuildTimeMs       BuildTimeSec       ms>sec,sec>sec    1.00
+Packages               PackageCount      nPackages          -                 0.50
+Total Package Time     PackageTimeMs     PackageTimeSec     ms>sec,sec>sec    1.00
+Inspections            InspectionCount   nInspections       -                 0.50
+Total Inspection Time  InspectionTimeMs  InspectionTimeSec  ms>sec,sec>sec    1.00
+Repairs                RepairCount       nRepairs           -                 0.50
+Total Repair Time      RepairTimeMs      RepairTimeSec      ms>sec,sec>sec    1.00
+
+SUMMARY
+----------------------------------------------------------------------
+Rows in Source A         : 12
+Rows in Source B         : 177
+Unique keys in Source A  : 12 (0 row(s) collapsed)
+Unique keys in Source B  : 12 (165 row(s) collapsed)
+Keys matched cleanly     : 2
+Cell mismatches          : 24
+Keys only in Source A    : 2
+Keys only in Source B    : 2
+
+OVERALL RESULT: FAIL - issues require review
+
+FULL COMPARISON (Source A vs Source B after pivot)
+----------------------------------------------------------------------
+Key                     Column                       Source A      Source B          Diff  Status
+R01                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R01                     Gadgets                         95.00         95.00          0.00  MATCH
+R01                     Defects                          3.00          3.00          0.00  MATCH
+R01                     Returns                          2.00          2.00          0.00  MATCH
+R01                     Shipments                       97.00         97.00         -0.00  MATCH
+R01                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R01                     Packages                        97.00         97.00         -0.00  MATCH
+R01                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R01                     Inspections                     20.00         20.00          0.00  MATCH
+R01                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R01                     Repairs                         15.00         15.00          0.00  MATCH
+R01                     Total Repair Time                3.00          3.00          0.00  MATCH
+R02                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R02                     Gadgets                         95.00         95.00          0.00  MATCH
+R02                     Defects                          3.00          3.00          0.00  MATCH
+R02                     Returns                          2.00          2.00          0.00  MATCH
+R02                     Shipments                       97.00         97.00         -0.00  MATCH
+R02                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R02                     Packages                        97.00         97.00         -0.00  MATCH
+R02                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R02                     Inspections                     20.00         20.00          0.00  MATCH
+R02                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R02                     Repairs                         15.00         15.00          0.00  MATCH
+R02                     Total Repair Time                3.00          3.00          0.00  MATCH
+R03                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R03                     Gadgets                         95.00         95.00          0.00  MATCH
+R03                     Defects                          3.00          3.00          0.00  MATCH
+R03                     Returns                          2.00          2.00          0.00  MATCH
+R03                     Shipments                       97.00         97.00         -0.00  MATCH
+R03                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R03                     Packages                        97.00         97.00         -0.00  MATCH
+R03                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R03                     Inspections                     20.00         20.00          0.00  MATCH
+R03                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R03                     Repairs                         15.00         15.00          0.00  MATCH
+R03                     Total Repair Time                3.00          3.00          0.00  MATCH
+R04                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R04                     Gadgets                         95.00         95.00          0.00  MATCH
+R04                     Defects                          3.00          3.00          0.00  MATCH
+R04                     Returns                          2.00          2.00          0.00  MATCH
+R04                     Shipments                       97.00         97.00         -0.00  MATCH
+R04                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R04                     Packages                        97.00         97.00         -0.00  MATCH
+R04                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R04                     Inspections                     20.00         20.00          0.00  MATCH
+R04                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R04                     Repairs                         15.00         15.00          0.00  MATCH
+R04                     Total Repair Time                3.00          3.00          0.00  MATCH
+R05                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R05                     Gadgets                         95.00         95.00          0.00  MATCH
+R05                     Defects                          3.00          3.00          0.00  MATCH
+R05                     Returns                          2.00          2.00          0.00  MATCH
+R05                     Shipments                       97.00         97.00         -0.00  MATCH
+R05                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R05                     Packages                        97.00         97.00         -0.00  MATCH
+R05                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R05                     Inspections                     20.00         20.00          0.00  MATCH
+R05                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R05                     Repairs                         15.00         15.00          0.00  MATCH
+R05                     Total Repair Time                3.00          3.00          0.00  MATCH
+R06                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R06                     Gadgets                         95.00         95.00          0.00  MATCH
+R06                     Defects                          3.00          3.00          0.00  MATCH
+R06                     Returns                          2.00          2.00          0.00  MATCH
+R06                     Shipments                       97.00         97.00         -0.00  MATCH
+R06                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R06                     Packages                        97.00         97.00         -0.00  MATCH
+R06                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R06                     Inspections                     20.00         20.00          0.00  MATCH
+R06                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R06                     Repairs                         15.00         15.00          0.00  MATCH
+R06                     Total Repair Time                3.00          3.00          0.00  MATCH
+R07                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R07                     Gadgets                         95.00         95.00          0.00  MATCH
+R07                     Defects                          3.00          3.00          0.00  MATCH
+R07                     Returns                          2.00          2.00          0.00  MATCH
+R07                     Shipments                       97.00         97.00         -0.00  MATCH
+R07                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R07                     Packages                        97.00         97.00         -0.00  MATCH
+R07                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R07                     Inspections                     20.00         20.00          0.00  MATCH
+R07                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R07                     Repairs                         15.00         15.00          0.00  MATCH
+R07                     Total Repair Time                3.00          3.00          0.00  MATCH
+R08                     Widgets                        100.00        105.00         -5.00  MISMATCH
+R08                     Gadgets                         95.00         95.00          0.00  MATCH
+R08                     Defects                          3.00          3.00          0.00  MATCH
+R08                     Returns                          2.00          2.00          0.00  MATCH
+R08                     Shipments                       97.00         97.00         -0.00  MATCH
+R08                     Total Build Time               100.00        103.00         -3.00  MISMATCH
+R08                     Packages                        97.00         97.00         -0.00  MATCH
+R08                     Total Package Time              80.00         84.00         -4.00  MISMATCH
+R08                     Inspections                     20.00         20.00          0.00  MATCH
+R08                     Total Inspection Time            5.00          5.00          0.00  MATCH
+R08                     Repairs                         15.00         15.00          0.00  MATCH
+R08                     Total Repair Time                3.00          3.00          0.00  MATCH
+R11                     Widgets                         65.00         65.00          0.00  MATCH
+R11                     Gadgets                         60.00         60.00          0.00  MATCH
+R11                     Defects                          1.00          1.00          0.00  MATCH
+R11                     Returns                          2.00          2.00          0.00  MATCH
+R11                     Shipments                       61.00         61.00          0.00  MATCH
+R11                     Total Build Time                60.00         60.00          0.00  MATCH
+R11                     Packages                        61.00         61.00          0.00  MATCH
+R11                     Total Package Time              45.00         45.00          0.00  MATCH
+R11                     Inspections                     10.00         10.00          0.00  MATCH
+R11                     Total Inspection Time            2.20          2.20          0.00  MATCH
+R11                     Repairs                          7.00          7.00          0.00  MATCH
+R11                     Total Repair Time                1.00          1.00          0.00  MATCH
+R12                     Widgets                         55.00         55.00          0.00  MATCH
+R12                     Gadgets                         50.00         50.00          0.00  MATCH
+R12                     Defects                          1.00          1.00          0.00  MATCH
+R12                     Returns                          1.00          1.00          0.00  MATCH
+R12                     Shipments                       51.00         51.00          0.00  MATCH
+R12                     Total Build Time                50.00         50.00          0.00  MATCH
+R12                     Packages                        51.00         51.00          0.00  MATCH
+R12                     Total Package Time              40.00         40.00          0.00  MATCH
+R12                     Inspections                      8.00          8.00          0.00  MATCH
+R12                     Total Inspection Time            1.80          1.80          0.00  MATCH
+R12                     Repairs                          5.00          5.00          0.00  MATCH
+R12                     Total Repair Time                0.90          0.90          0.00  MATCH
+
+CELL MISMATCHES (key matched, a column value differs beyond tolerance)
+----------------------------------------------------------------------
+Key                     Column                       Source A      Source B          Diff
+R01                     Widgets                        100.00        105.00         -5.00
+R01                     Total Build Time               100.00        103.00         -3.00
+R01                     Total Package Time              80.00         84.00         -4.00
+R02                     Widgets                        100.00        105.00         -5.00
+R02                     Total Build Time               100.00        103.00         -3.00
+R02                     Total Package Time              80.00         84.00         -4.00
+R03                     Widgets                        100.00        105.00         -5.00
+R03                     Total Build Time               100.00        103.00         -3.00
+R03                     Total Package Time              80.00         84.00         -4.00
+R04                     Widgets                        100.00        105.00         -5.00
+R04                     Total Build Time               100.00        103.00         -3.00
+R04                     Total Package Time              80.00         84.00         -4.00
+R05                     Widgets                        100.00        105.00         -5.00
+R05                     Total Build Time               100.00        103.00         -3.00
+R05                     Total Package Time              80.00         84.00         -4.00
+R06                     Widgets                        100.00        105.00         -5.00
+R06                     Total Build Time               100.00        103.00         -3.00
+R06                     Total Package Time              80.00         84.00         -4.00
+R07                     Widgets                        100.00        105.00         -5.00
+R07                     Total Build Time               100.00        103.00         -3.00
+R07                     Total Package Time              80.00         84.00         -4.00
+R08                     Widgets                        100.00        105.00         -5.00
+R08                     Total Build Time               100.00        103.00         -3.00
+R08                     Total Package Time              80.00         84.00         -4.00
+
+KEYS ONLY IN SOURCE A (missing from Source B)
+----------------------------------------------------------------------
+A_ONLY_1, A_ONLY_2
+
+KEYS ONLY IN SOURCE B (missing from Source A)
+----------------------------------------------------------------------
+B_ONLY_1, B_ONLY_2
+
+QA NOTES
+----------------------------------------------------------------------
+- 24 cell value(s) differ. Check the column map (names/units) and confirm which source is authoritative.
+- 2 key(s) exist only in Source A.
+- 2 key(s) exist only in Source B.
+======================================================================

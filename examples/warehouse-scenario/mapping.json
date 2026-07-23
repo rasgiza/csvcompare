@@ -1,0 +1,86 @@
+{
+  "key": {
+    "a": "RegionCode",
+    "b": "RegionId"
+  },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    {
+      "name": "Widgets",
+      "a": "WidgetsBuilt",
+      "b": "nWidgetCount"
+    },
+    {
+      "name": "Gadgets",
+      "a": "GadgetsBuilt",
+      "b": "nGadgetCount"
+    },
+    {
+      "name": "Defects",
+      "a": "DefectCount",
+      "b": "nDefects"
+    },
+    {
+      "name": "Returns",
+      "a": "ReturnCount",
+      "b": "nReturns"
+    },
+    {
+      "name": "Shipments",
+      "a": "ShipmentCount",
+      "b": "nShipments"
+    },
+    {
+      "name": "Total Build Time",
+      "a": "BuildTimeMs",
+      "b": "BuildTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Packages",
+      "a": "PackageCount",
+      "b": "nPackages"
+    },
+    {
+      "name": "Total Package Time",
+      "a": "PackageTimeMs",
+      "b": "PackageTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Inspections",
+      "a": "InspectionCount",
+      "b": "nInspections"
+    },
+    {
+      "name": "Total Inspection Time",
+      "a": "InspectionTimeMs",
+      "b": "InspectionTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Repairs",
+      "a": "RepairCount",
+      "b": "nRepairs"
+    },
+    {
+      "name": "Total Repair Time",
+      "a": "RepairTimeMs",
+      "b": "RepairTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    }
+  ]
+}
