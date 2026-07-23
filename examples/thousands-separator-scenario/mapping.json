@@ -1,0 +1,15 @@
+{
+  "key": { "a": "QueueName", "b": "QueueName" },
+  "aggregate": "sum",
+  "tolerance": 1,
+  "columns": [
+    {
+      "name": "Total Handle",
+      "a": "TotalHandle",
+      "b": "tHandledTime",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec"
+    }
+  ]
+}

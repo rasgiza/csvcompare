@@ -170,3 +170,37 @@ def test_dirty_keys_are_cleaned_and_grouped(tmp_path):
     assert not result.has_issues
     assert result.only_in_b == []
 
+
+def test_thousands_separators_are_parsed_and_summed(tmp_path):
+    # Source B values arrive as quoted strings with comma thousands separators.
+    # They must parse to numbers and SUM, not drop to NaN (which would leave the
+    # total looking like a single detail row).
+    a = _write_csv(tmp_path / "a.csv", ["Name", "difhse"], [("SUPPORT_A", 245000)])
+    b = _write_csv(
+        tmp_path / "b.csv",
+        ["foksName", "difhse"],
+        [
+            ("SUPPORT_A", "55,000.00"),
+            ("SUPPORT_A", "40,000.00"),
+            ("SUPPORT_A", "35,000.00"),
+            ("SUPPORT_A", "50,000.00"),
+            ("SUPPORT_A", "30,000.00"),
+            ("SUPPORT_A", "34,000.00"),
+            ("SUPPORT_A", "1,000.00"),
+        ],
+    )
+    mapping = Mapping.from_dict(
+        {
+            "key": {"a": "Name", "b": "foksName"},
+            "tolerance": 1.0,
+            "columns": [{"name": "difhse", "a": "difhse", "b": "difhse"}],
+        }
+    )
+    frame_a = load_mapped(a, mapping, side="a")
+    frame_b = load_mapped(b, mapping, side="b")
+    result = compare_mapped(frame_a, frame_b, mapping)
+    # 55000+40000+35000+50000+30000+34000+1000 = 245000, matches A exactly.
+    assert result.matched_keys == 1
+    assert not result.has_issues
+
+

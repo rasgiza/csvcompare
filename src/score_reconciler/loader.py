@@ -79,6 +79,20 @@ def _clean_key(value: object) -> str:
     return text.strip()
 
 
+def _to_numeric(series: pd.Series) -> pd.Series:
+    """Coerce a column to numbers, tolerating thousands separators.
+
+    Values like ``"55,000.00"`` (comma thousands separator, often produced when
+    a numeric export is quoted) would otherwise become ``NaN`` under pandas'
+    strict parser and silently drop out of a ``sum`` - leaving only the rows
+    that happened to be comma-free and making the total look like a single
+    detail row. Commas and surrounding whitespace are stripped before
+    conversion; anything still non-numeric becomes ``NaN``.
+    """
+    cleaned = series.astype(str).str.strip().str.replace(",", "", regex=False)
+    return pd.to_numeric(cleaned, errors="coerce")
+
+
 def _resolve_column(
     columns: Iterable[str],
     explicit: str | None,
@@ -139,7 +153,7 @@ def _load_one(path: Path, key: str | None, value: str | None) -> pd.DataFrame:
     frame.columns = [NAME_COLUMN, SCORE_COLUMN]
 
     frame[NAME_COLUMN] = frame[NAME_COLUMN].map(_clean_key)
-    frame[SCORE_COLUMN] = pd.to_numeric(frame[SCORE_COLUMN], errors="coerce")
+    frame[SCORE_COLUMN] = _to_numeric(frame[SCORE_COLUMN])
 
     frame = frame[frame[NAME_COLUMN] != ""]
     frame = frame[frame[NAME_COLUMN].str.lower() != "nan"]
@@ -206,7 +220,7 @@ def _load_one_mapped(path: Path, key_col_name: str, columns, side: str) -> "pd.D
         header = col.source_a if side == "a" else col.source_b
         multiplier = col.multiplier_a() if side == "a" else col.multiplier_b()
         source_col = _resolve_column(raw.columns, header, set(), col.name, path.name)
-        values = pd.to_numeric(raw[source_col], errors="coerce")
+        values = _to_numeric(raw[source_col])
         data[col.name] = values * multiplier
 
     frame = pd.DataFrame(data)
