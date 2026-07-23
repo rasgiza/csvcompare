@@ -1,0 +1,114 @@
+RegionCode,WidgetsBuilt,GadgetsBuilt,DefectCount,ReturnCount,ShipmentCount,BuildTimeMs,PackageCount,PackageTimeMs,InspectionCount,InspectionTimeMs,RepairCount,RepairTimeMs
+2
+R01,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+3
+R02,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+4
+R03,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+5
+R04,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+6
+R05,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+7
+R06,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+8
+R07,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+9
+R08,100,95,3,2,97,100000,97,80000,20,5000,15,3000
+10
+A_ONLY_1,75,70,2,3,72,70000,72,55000,15,3000,10,1500
+11
+A_ONLY_2,80,76,2,2,78,75000,78,60000,12,2500,8,1200
+12
+R11,65,60,1,2,61,60000,61,45000,10,2200,7,1000
+13
+R12,55,50,1,1,51,50000,51,40000,8,1800,5,900
+
+
+
+{
+  "key": {
+    "a": "RegionCode",
+    "b": "RegionId"
+  },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    {
+      "name": "Widgets",
+      "a": "WidgetsBuilt",
+      "b": "nWidgetCount"
+    },
+    {
+      "name": "Gadgets",
+      "a": "GadgetsBuilt",
+      "b": "nGadgetCount"
+    },
+    {
+      "name": "Defects",
+      "a": "DefectCount",
+      "b": "nDefects"
+    },
+    {
+      "name": "Returns",
+      "a": "ReturnCount",
+      "b": "nReturns"
+    },
+    {
+      "name": "Shipments",
+      "a": "ShipmentCount",
+      "b": "nShipments"
+    },
+    {
+      "name": "Total Build Time",
+      "a": "BuildTimeMs",
+      "b": "BuildTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Packages",
+      "a": "PackageCount",
+      "b": "nPackages"
+    },
+    {
+      "name": "Total Package Time",
+      "a": "PackageTimeMs",
+      "b": "PackageTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Inspections",
+      "a": "InspectionCount",
+      "b": "nInspections"
+    },
+    {
+      "name": "Total Inspection Time",
+      "a": "InspectionTimeMs",
+      "b": "InspectionTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    },
+    {
+      "name": "Repairs",
+      "a": "RepairCount",
+      "b": "nRepairs"
+    },
+    {
+      "name": "Total Repair Time",
+      "a": "RepairTimeMs",
+      "b": "RepairTimeSec",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec",
+      "tolerance": 1.0
+    }
+  ]
+}
