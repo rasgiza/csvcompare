@@ -1,0 +1,298 @@
+Reconciliation Investigation Report
+Executive Summary
+
+During validation of a multi-source reconciliation process, a discrepancy was identified in several time-based metrics after data aggregation and comparison. Initial analysis suggested a unit conversion issue; however, further investigation determined that time conversion was functioning correctly. The evidence indicates that the issue likely originates during the aggregation or comparison stage, where the value being compared does not appear to represent the fully aggregated dataset.
+
+Background
+
+The reconciliation process compares metrics between two reporting systems:
+
+Source A contains duration metrics stored in milliseconds.
+Source B contains equivalent duration metrics stored in seconds.
+A mapping configuration specifies:
+key mappings
+column mappings
+aggregation method (sum)
+unit conversion rules
+
+The expected process is:
+
+Load data from both sources.
+Convert Source A time values from milliseconds to seconds.
+Group records by business key.
+Aggregate rows using sum.
+Compare aggregated values between sources.
+Example Scenario
+Source A
+Team	Total Duration (ms)TEAM_001	98,450,000
+
+After conversion:
+
+Plain Text
+1
+98,450,000 ms ÷ 1000
+2
+= 98,450.00 sec
+Show more lines
+
+Expected aggregated value:
+
+Plain Text
+1
+98,450.00 sec
+Show more lines
+Source B
+
+Multiple rows exist for the same key:
+
+Team	Duration (sec)TEAM_001	30,000.00
+TEAM_001	25,500.00
+TEAM_001	20,200.00
+TEAM_001	22,100.00
+TEAM_001	600.00
+
+Summed total:
+
+Plain Text
+1
+30,000.00
+2
+25,500.00
+3
+20,200.00
+4
+22,100.00
+5
+600.00
+6
+---------
+7
+98,400.00 sec
+Show more lines
+
+Expected comparison:
+
+Plain Text
+1
+Source A = 98,450.00
+2
+Source B = 98,400.00
+3
+Difference = 50.00
+Show more lines
+
+This would be considered a reasonable reconciliation result.
+
+Observed Behavior
+
+Instead of comparing:
+
+Plain Text
+1
+98,450.00
+2
+vs
+3
+98,400.00
+4
+`
+Show more lines
+
+the reconciliation output displayed:
+
+Plain Text
+1
+Source A = 98,450.00
+2
+Source B = 50.00
+3
+Difference = 98,400.00
+Show more lines
+
+This pattern suggests that the comparison engine is not using the aggregated Source B total during mismatch reporting.
+
+Investigation Findings
+1. Unit Conversion Is Working
+
+Sample values confirmed that the conversion logic is behaving correctly.
+
+Example:
+
+Plain Text
+1
+98,450,000 ms
+Show more lines
+
+becomes:
+
+Plain Text
+1
+98,450.00 sec
+Show more lines
+
+This matches the expected conversion formula:
+
+Plain Text
+1
+milliseconds ÷ 1000
+Show more lines
+
+Therefore, unit normalization is not the root cause.
+
+2. Mapping Configuration Appears Correct
+
+Review of the mapping configuration showed:
+
+JSON
+1
+{
+2
+"aggregate": "sum",
+3
+"unit_a": "ms",
+4
+"unit_b": "sec",
+5
+"to_unit": "sec"
+6
+}
+Show more lines
+
+The configuration aligns with the source data definitions and does not indicate any obvious defects.
+
+3. Aggregation Logic Appears Correct
+
+The reconciliation code performs grouping similar to:
+
+Python
+1
+grouped.agg({
+2
+"Metric": "sum"
+3
+})
+Show more lines
+
+This implementation should correctly aggregate all records belonging to the same key.
+
+No defect was identified within the aggregation function itself.
+
+4. Reporting Values Do Not Align With Aggregated Totals
+
+The most significant finding is that the value displayed as "Source B" in the mismatch report closely resembles the expected difference between the two aggregated totals.
+
+Example:
+
+Plain Text
+1
+Source A Total = 98,450.00
+2
+Source B Total = 98,400.00
+3
+Expected Difference = 50.00
+Show more lines
+
+Observed report:
+
+Plain Text
+1
+Source A = 98,450.00
+2
+Source B = 50.00
+3
+Difference = 98,400.00
+Show more lines
+
+This suggests one of the following:
+
+Aggregated values are being overwritten before reporting.
+The wrong variable is being passed into the mismatch object.
+A calculated difference value is being stored where the aggregated Source B value should be.
+A non-aggregated dataset is being referenced during comparison.
+Likely Root Cause
+
+The most probable root cause is a defect in the handoff between:
+
+Plain Text
+1
+Aggregation
+2
+↓
+3
+Comparison
+4
+↓
+5
+Mismatch Creation
+6
+↓
+7
+Reporting
+Show more lines
+
+Specifically, the comparison layer appears to be receiving or storing an incorrect value for Source B during mismatch generation.
+
+Recommended Actions
+Immediate Validation
+
+Add diagnostic logging after aggregation:
+
+Python
+1
+print(aggregated_source_a)
+2
+print(aggregated_source_b)
+Show more lines
+
+Verify that both contain the expected summed values before comparison occurs.
+
+Comparison Validation
+
+Add temporary tracing:
+
+Python
+1
+print(
+2
+key,
+3
+metric,
+4
+value_a,
+5
+value_b,
+6
+value_a - value_b
+7
+)
+Show more lines
+
+This will confirm whether the incorrect value appears:
+
+before comparison,
+during comparison,
+or only in the report output.
+Code Review Focus Areas
+
+Review the logic that:
+
+Builds comparison objects.
+Creates mismatch records.
+Assigns values to:
+source_a
+source_b
+difference
+Generates the final report output.
+Conclusion
+
+The investigation indicates that:
+
+✅ Unit conversion is functioning correctly.
+
+✅ Mapping configuration appears correct.
+
+✅ Aggregation logic appears correct.
+
+❌ The value being compared or reported for Source B does not appear to represent the aggregated total.
+
+The evidence strongly suggests a defect between aggregation and mismatch reporting, where a derived or incorrect value is being used in place of the aggregated Source B metric. Further debugging should focus on the comparison and mismatch-generation stages of the reconciliation workflow.
