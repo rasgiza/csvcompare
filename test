@@ -1,298 +1,421 @@
-Reconciliation Investigation Report
+Reconciliation Defect Investigation Report (Sample Test Case)
 Executive Summary
 
-During validation of a multi-source reconciliation process, a discrepancy was identified in several time-based metrics after data aggregation and comparison. Initial analysis suggested a unit conversion issue; however, further investigation determined that time conversion was functioning correctly. The evidence indicates that the issue likely originates during the aggregation or comparison stage, where the value being compared does not appear to represent the fully aggregated dataset.
+A defect was identified during reconciliation testing involving time-based metrics. Count-based metrics reconciled successfully, while duration-based metrics reported significant mismatches despite the underlying source data appearing to match after aggregation and unit conversion.
 
-Background
+Investigation indicates that:
 
-The reconciliation process compares metrics between two reporting systems:
+Record counts aggregate correctly.
+Millisecond-to-second conversion works correctly.
+Source B contains multiple rows per key that should be summed.
+The reconciliation output appears to compare against the final row value rather than the aggregated total for certain duration metrics.
+Test Scenario
+Source A (Summary File)
 
-Source A contains duration metrics stored in milliseconds.
-Source B contains equivalent duration metrics stored in seconds.
-A mapping configuration specifies:
-key mappings
-column mappings
-aggregation method (sum)
-unit conversion rules
+One record per queue.
 
-The expected process is:
+Queue Name	Offer	Answer	Handle	Total HandleSUPPORT_A	250	245	250	245,000,000 ms
 
-Load data from both sources.
-Convert Source A time values from milliseconds to seconds.
-Group records by business key.
-Aggregate rows using sum.
-Compare aggregated values between sources.
-Example Scenario
-Source A
-Team	Total Duration (ms)TEAM_001	98,450,000
-
-After conversion:
+Expected conversion:
 
 Plain Text
 1
-98,450,000 ms ÷ 1000
+245,000,000 ms
 2
-= 98,450.00 sec
+÷ 1000
+3
+=
+4
+245,000.00 sec
 Show more lines
+Source B (Daily Detail File)
+
+Multiple records exist for the same queue.
+
+QueueName	Date	tHandledTimeSUPPORT_A	01-Feb	55,000.00
+SUPPORT_A	02-Feb	40,000.00
+SUPPORT_A	03-Feb	35,000.00
+SUPPORT_A	04-Feb	50,000.00
+SUPPORT_A	05-Feb	30,000.00
+SUPPORT_A	06-Feb	34,000.00
+SUPPORT_A	07-Feb	1,000.00
 
 Expected aggregated value:
 
 Plain Text
 1
-98,450.00 sec
+55,000
+2
+40,000
+3
+35,000
+4
+50,000
+5
+30,000
+6
+34,000
+7
+1,000
+8
+-------
+9
+245,000 sec
+Show more lines
+Expected Reconciliation Result
+
+After conversion and aggregation:
+
+Metric	Source A	Source BTotal Handle	245,000.00	245,000.00
+
+Expected Difference:
+
+Plain Text
+1
+0.00
+Show more lines
+
+Expected Result:
+
+Plain Text
+1
+MATCH
+Show more lines
+Actual Reconciliation Result
+
+Observed output:
+
+Plain Text
+1
+Queue Metric Source A Source B Diff
+2
+---------------------------------------------------------------
+3
+SUPPORT_A Total Handle 245000.00 1000.00 244000.00
+Show more lines
+
+Notice:
+
+Plain Text
+1
+Source B = 1,000.00
+Show more lines
+
+which is the final daily value rather than the sum of all rows.
+
+Additional Example
+Source A
+Plain Text
+1
+Total Talk Time
+2
+=
+3
+180,500,000 ms
+Show more lines
+
+Converted:
+
+Plain Text
+1
+180,500 sec
 Show more lines
 Source B
-
-Multiple rows exist for the same key:
-
-Team	Duration (sec)TEAM_001	30,000.00
-TEAM_001	25,500.00
-TEAM_001	20,200.00
-TEAM_001	22,100.00
-TEAM_001	600.00
-
-Summed total:
-
 Plain Text
 1
-30,000.00
+48,000
 2
-25,500.00
+32,000
 3
-20,200.00
+26,000
 4
-22,100.00
+30,000
 5
-600.00
+24,000
 6
----------
+19,500
 7
-98,400.00 sec
+1,000
+8
+------
+9
+180,500 sec
 Show more lines
 
-Expected comparison:
+Expected:
 
 Plain Text
 1
-Source A = 98,450.00
-2
-Source B = 98,400.00
-3
-Difference = 50.00
+180,500 vs 180,500
 Show more lines
 
-This would be considered a reasonable reconciliation result.
-
-Observed Behavior
-
-Instead of comparing:
+Actual:
 
 Plain Text
 1
-98,450.00
+180,500 vs 1,000
 2
-vs
+``
+Show more lines
+
+Difference:
+
+Plain Text
+1
+179,500
+Show more lines
+Analysis
+
+The behavior indicates that aggregation is not being reflected in the values used during comparison.
+
+Expected process:
+
+Plain Text
+1
+Load Detail Rows
+2
+↓
 3
-98,400.00
+Convert Units
 4
+↓
+5
+Group By Queue
+6
+↓
+7
+SUM Metrics
+8
+↓
+9
+Compare Results
+Show more lines
+
+Observed process appears to behave like:
+
+Plain Text
+1
+Load Detail Rows
+2
+↓
+3
+Convert Units
+4
+↓
+5
+Group By Queue
+6
+↓
+7
+Take Last Value
+8
+↓
+9
+Compare Results
+Show more lines
+Validation of Unit Conversion
+
+Unit conversion was independently validated.
+
+Example:
+
+Source A:
+
+Plain Text
+1
+245,000,000 ms
+Show more lines
+
+Expected:
+
+Plain Text
+1
+245,000 sec
+Show more lines
+
+Observed:
+
+Plain Text
+1
+245,000 sec
+Show more lines
+
+Conclusion:
+
+✅ Conversion logic is functioning correctly.
+
+Validation of Aggregation
+
+For count-based metrics:
+
+Source B:
+
+Plain Text
+1
+50
+2
+40
+3
+30
+4
+55
+5
+45
+6
+20
+7
+10
+8
+----
+9
+250
+Show more lines
+
+Source A:
+
+Plain Text
+1
+250
+Show more lines
+
+Reconciliation Result:
+
+Plain Text
+1
+MATCH
+Show more lines
+
+This demonstrates that record grouping is occurring.
+
+However, duration metrics continue to compare against values that resemble the last detailed record rather than the summed total.
+
+Root Cause Assessment
+
+Most likely causes:
+
+Possibility 1
+
+Duration columns are bypassing the aggregation result and using raw row values during comparison.
+
+Possibility 2
+
+Duration columns are being treated differently from count columns during dataset preparation.
+
+Possibility 3
+
+Numeric parsing is failing for values that contain thousands separators.
+
+Example:
+
+Plain Text
+1
+55,000.00
+Show more lines
+
+may be interpreted as text rather than a number.
+
+If only numeric rows without commas are successfully converted, the final comparison could use those remaining values.
+
+Diagnostic Recommendations
+Verify Aggregated Output
+
+Immediately after aggregation:
+
+Python
+1
+print(aggregated_dataframe)
+Show more lines
+
+Expected:
+
+Plain Text
+1
+QueueName TotalHandle
+2
+SUPPORT_A 245000.00
+3
 `
 Show more lines
+Verify Comparison Values
 
-the reconciliation output displayed:
-
-Plain Text
-1
-Source A = 98,450.00
-2
-Source B = 50.00
-3
-Difference = 98,400.00
-Show more lines
-
-This pattern suggests that the comparison engine is not using the aggregated Source B total during mismatch reporting.
-
-Investigation Findings
-1. Unit Conversion Is Working
-
-Sample values confirmed that the conversion logic is behaving correctly.
-
-Example:
-
-Plain Text
-1
-98,450,000 ms
-Show more lines
-
-becomes:
-
-Plain Text
-1
-98,450.00 sec
-Show more lines
-
-This matches the expected conversion formula:
-
-Plain Text
-1
-milliseconds ÷ 1000
-Show more lines
-
-Therefore, unit normalization is not the root cause.
-
-2. Mapping Configuration Appears Correct
-
-Review of the mapping configuration showed:
-
-JSON
-1
-{
-2
-"aggregate": "sum",
-3
-"unit_a": "ms",
-4
-"unit_b": "sec",
-5
-"to_unit": "sec"
-6
-}
-Show more lines
-
-The configuration aligns with the source data definitions and does not indicate any obvious defects.
-
-3. Aggregation Logic Appears Correct
-
-The reconciliation code performs grouping similar to:
-
-Python
-1
-grouped.agg({
-2
-"Metric": "sum"
-3
-})
-Show more lines
-
-This implementation should correctly aggregate all records belonging to the same key.
-
-No defect was identified within the aggregation function itself.
-
-4. Reporting Values Do Not Align With Aggregated Totals
-
-The most significant finding is that the value displayed as "Source B" in the mismatch report closely resembles the expected difference between the two aggregated totals.
-
-Example:
-
-Plain Text
-1
-Source A Total = 98,450.00
-2
-Source B Total = 98,400.00
-3
-Expected Difference = 50.00
-Show more lines
-
-Observed report:
-
-Plain Text
-1
-Source A = 98,450.00
-2
-Source B = 50.00
-3
-Difference = 98,400.00
-Show more lines
-
-This suggests one of the following:
-
-Aggregated values are being overwritten before reporting.
-The wrong variable is being passed into the mismatch object.
-A calculated difference value is being stored where the aggregated Source B value should be.
-A non-aggregated dataset is being referenced during comparison.
-Likely Root Cause
-
-The most probable root cause is a defect in the handoff between:
-
-Plain Text
-1
-Aggregation
-2
-↓
-3
-Comparison
-4
-↓
-5
-Mismatch Creation
-6
-↓
-7
-Reporting
-Show more lines
-
-Specifically, the comparison layer appears to be receiving or storing an incorrect value for Source B during mismatch generation.
-
-Recommended Actions
-Immediate Validation
-
-Add diagnostic logging after aggregation:
-
-Python
-1
-print(aggregated_source_a)
-2
-print(aggregated_source_b)
-Show more lines
-
-Verify that both contain the expected summed values before comparison occurs.
-
-Comparison Validation
-
-Add temporary tracing:
+Before mismatch creation:
 
 Python
 1
 print(
 2
-key,
+queue,
 3
 metric,
 4
 value_a,
 5
-value_b,
+value_b
 6
-value_a - value_b
-7
 )
 Show more lines
 
-This will confirm whether the incorrect value appears:
+Expected:
 
-before comparison,
-during comparison,
-or only in the report output.
-Code Review Focus Areas
+Plain Text
+1
+SUPPORT_A
+2
+Total Handle
+3
+245000.00
+4
+245000.00
+Show more lines
+Verify Numeric Parsing
 
-Review the logic that:
+Before aggregation:
 
-Builds comparison objects.
-Creates mismatch records.
-Assigns values to:
-source_a
-source_b
-difference
-Generates the final report output.
+Python
+1
+print(raw_dataframe.dtypes)
+Show more lines
+
+Expected:
+
+Plain Text
+1
+tHandledTime float64
+Show more lines
+
+If values appear as:
+
+Plain Text
+1
+object
+Show more lines
+
+the loader should remove commas before numeric conversion.
+
+Example:
+
+Python
+1
+pd.to_numeric(
+2
+column.astype(str).str.replace(",", ""),
+3
+errors="coerce"
+4
+)
+Show more lines
 Conclusion
 
-The investigation indicates that:
+The test scenario demonstrates that:
 
-✅ Unit conversion is functioning correctly.
+✅ Mapping configuration is correct.
 
-✅ Mapping configuration appears correct.
+✅ Unit conversion is correct.
 
-✅ Aggregation logic appears correct.
+✅ Count metrics reconcile successfully.
 
-❌ The value being compared or reported for Source B does not appear to represent the aggregated total.
+✅ Source data totals reconcile mathematically.
 
-The evidence strongly suggests a defect between aggregation and mismatch reporting, where a derived or incorrect value is being used in place of the aggregated Source B metric. Further debugging should focus on the comparison and mismatch-generation stages of the reconciliation workflow.
+❌ Duration metrics are compared using values that resemble individual detail rows rather than aggregated totals.
+
+The evidence strongly indicates a defect in the aggregation-to-comparison pipeline affecting duration fields. Further investigation should focus on validating the aggregated dataset immediately before values are compared and reported.
