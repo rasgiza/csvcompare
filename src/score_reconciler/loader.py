@@ -21,6 +21,8 @@ column.
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from pathlib import Path
 from typing import Iterable
 
@@ -44,6 +46,37 @@ class LoaderError(Exception):
 
 def _normalize(header: str) -> str:
     return "".join(str(header).lower().split())
+
+
+# Invisible characters that make two otherwise-identical keys compare unequal:
+# zero-width space/non-joiner/joiner/word-joiner and the BOM.
+_INVISIBLE_CHARS = dict.fromkeys(
+    [0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF], None
+)
+_WHITESPACE_RUN = re.compile(r"\s+")
+
+
+def _clean_key(value: object) -> str:
+    """Aggressively normalize a key value so grouping/summing is reliable.
+
+    Removes the "hidden" differences that silently split a group:
+    - Unicode compatibility normalization (NFKC) folds full-width, ligature and
+      look-alike forms to a canonical form.
+    - Zero-width and BOM characters are stripped.
+    - Remaining control / non-printing characters (Unicode category ``C*``) are
+      removed.
+    - Every run of whitespace (spaces, tabs, non-breaking spaces, newlines) is
+      collapsed to a single regular space, then the ends are trimmed.
+
+    Casing is preserved so the report still shows the original spelling.
+    """
+    if value is None:
+        return ""
+    text = unicodedata.normalize("NFKC", str(value))
+    text = text.translate(_INVISIBLE_CHARS)
+    text = "".join(ch for ch in text if not unicodedata.category(ch).startswith("C"))
+    text = _WHITESPACE_RUN.sub(" ", text)
+    return text.strip()
 
 
 def _resolve_column(
@@ -105,7 +138,7 @@ def _load_one(path: Path, key: str | None, value: str | None) -> pd.DataFrame:
     frame = raw[[key_col, value_col]].copy()
     frame.columns = [NAME_COLUMN, SCORE_COLUMN]
 
-    frame[NAME_COLUMN] = frame[NAME_COLUMN].astype(str).str.strip()
+    frame[NAME_COLUMN] = frame[NAME_COLUMN].map(_clean_key)
     frame[SCORE_COLUMN] = pd.to_numeric(frame[SCORE_COLUMN], errors="coerce")
 
     frame = frame[frame[NAME_COLUMN] != ""]
@@ -167,7 +200,7 @@ def _load_one_mapped(path: Path, key_col_name: str, columns, side: str) -> "pd.D
         raise LoaderError(f"File is empty: {path.name}")
 
     key_col = _resolve_column(raw.columns, key_col_name, set(), "key", path.name)
-    data = {KEY_COLUMN: raw[key_col].astype(str).str.strip()}
+    data = {KEY_COLUMN: raw[key_col].map(_clean_key)}
 
     for col in columns:
         header = col.source_a if side == "a" else col.source_b

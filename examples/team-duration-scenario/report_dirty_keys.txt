@@ -1,0 +1,48 @@
+======================================================================
+RECONCILIATION REPORT (mapped, multi-column)
+======================================================================
+Generated : 2026-07-23 08:20:36
+Source A  : source_a.csv
+Source B  : source_b_dirty_keys.csv
+Key       : A='Team'  B='Team'
+Aggregate : sum (rows sharing a key are collapsed/pivoted)
+
+COLUMN MAP
+----------------------------------------------------------------------
+Report name         Source A          Source B          Unit A>Unit B      Tol
+Duration            Duration          Duration          ms>sec,sec>sec  100.00
+
+SUMMARY
+----------------------------------------------------------------------
+Rows in Source A         : 1
+Rows in Source B         : 5
+Unique keys in Source A  : 1 (0 row(s) collapsed)
+Unique keys in Source B  : 1 (4 row(s) collapsed)
+Keys matched cleanly     : 1
+Cell mismatches          : 0
+Keys only in Source A    : 0
+Keys only in Source B    : 0
+
+OVERALL RESULT: PASS - no issues found
+
+FULL COMPARISON (Source A vs Source B after pivot)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff  Status
+TEAM_001                Duration                98450.00      98400.00         50.00  MATCH
+
+CELL MISMATCHES (key matched, a column value differs beyond tolerance)
+----------------------------------------------------------------------
+None.
+
+KEYS ONLY IN SOURCE A (missing from Source B)
+----------------------------------------------------------------------
+None.
+
+KEYS ONLY IN SOURCE B (missing from Source A)
+----------------------------------------------------------------------
+None.
+
+QA NOTES
+----------------------------------------------------------------------
+All keys and mapped columns reconcile. No further action needed.
+======================================================================

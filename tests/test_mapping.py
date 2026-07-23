@@ -141,3 +141,32 @@ def test_missing_to_unit_means_no_conversion(tmp_path):
     assert col.multiplier_a() == 1.0  # no to_unit -> passthrough
     frame_a = load_mapped(a, mapping, side="a")
     assert frame_a["Elapsed"].iloc[0] == 5000  # unchanged, proving the trap
+
+
+def test_dirty_keys_are_cleaned_and_grouped(tmp_path):
+    # Same logical key written with a trailing space, a non-breaking space,
+    # a zero-width space and a double space. All must collapse to "TEAM 001"
+    # so their values sum into ONE group instead of splitting apart.
+    a = _write_csv(tmp_path / "a.csv", ["Name", "difhse", "shcoes"], [("TEAM 001", 30, 30)])
+    b = _write_csv(
+        tmp_path / "b.csv",
+        ["foksName", "difhse", "shcoes"],
+        [
+            ("TEAM 001 ", 10, 10),          # trailing space
+            ("TEAM\u00a0001", 10, 10),      # non-breaking space
+            ("TEAM 001\u200b", 5, 5),       # zero-width space
+            ("TEAM  001", 5, 5),            # double space
+        ],
+    )
+    mapping = _mapping()
+    frame_a = load_mapped(a, mapping, side="a")
+    frame_b = load_mapped(b, mapping, side="b")
+    # All four B rows collapsed to a single cleaned key.
+    assert frame_b["__key__"].nunique() == 1
+    assert frame_b["__key__"].iloc[0] == "TEAM 001"
+    result = compare_mapped(frame_a, frame_b, mapping)
+    # B sums to 30/30 and matches A's single row exactly, no leftover keys.
+    assert result.matched_keys == 1
+    assert not result.has_issues
+    assert result.only_in_b == []
+

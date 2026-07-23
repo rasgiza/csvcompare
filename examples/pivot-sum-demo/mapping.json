@@ -1,0 +1,8 @@
+{
+  "key": { "a": "Name", "b": "Name" },
+  "aggregate": "sum",
+  "tolerance": 0.5,
+  "columns": [
+    { "name": "Percentile", "a": "Percentile", "b": "Percentile" }
+  ]
+}

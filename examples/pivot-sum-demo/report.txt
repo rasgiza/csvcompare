@@ -1,0 +1,50 @@
+======================================================================
+RECONCILIATION REPORT (mapped, multi-column)
+======================================================================
+Generated : 2026-07-23 07:37:11
+Source A  : source_a.csv
+Source B  : source_b.csv
+Key       : A='Name'  B='Name'
+Aggregate : sum (rows sharing a key are collapsed/pivoted)
+
+COLUMN MAP
+----------------------------------------------------------------------
+Report name         Source A          Source B          Unit A>Unit B      Tol
+Percentile          Percentile        Percentile        -                 0.50
+
+SUMMARY
+----------------------------------------------------------------------
+Rows in Source A         : 2
+Rows in Source B         : 5
+Unique keys in Source A  : 2 (0 row(s) collapsed)
+Unique keys in Source B  : 2 (3 row(s) collapsed)
+Keys matched cleanly     : 1
+Cell mismatches          : 1
+Keys only in Source A    : 0
+Keys only in Source B    : 0
+
+OVERALL RESULT: FAIL - issues require review
+
+FULL COMPARISON (Source A vs Source B after pivot)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff  Status
+svcA                    Percentile                285.00        285.00          0.00  MATCH
+svcB                    Percentile                100.00        180.00        -80.00  MISMATCH
+
+CELL MISMATCHES (key matched, a column value differs beyond tolerance)
+----------------------------------------------------------------------
+Key                     Column                  Source A      Source B          Diff
+svcB                    Percentile                100.00        180.00        -80.00
+
+KEYS ONLY IN SOURCE A (missing from Source B)
+----------------------------------------------------------------------
+None.
+
+KEYS ONLY IN SOURCE B (missing from Source A)
+----------------------------------------------------------------------
+None.
+
+QA NOTES
+----------------------------------------------------------------------
+- 1 cell value(s) differ. Check the column map (names/units) and confirm which source is authoritative.
+======================================================================

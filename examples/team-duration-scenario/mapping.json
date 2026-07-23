@@ -1,0 +1,15 @@
+{
+  "key": { "a": "Team", "b": "Team" },
+  "aggregate": "sum",
+  "tolerance": 100,
+  "columns": [
+    {
+      "name": "Duration",
+      "a": "Duration",
+      "b": "Duration",
+      "unit_a": "ms",
+      "unit_b": "sec",
+      "to_unit": "sec"
+    }
+  ]
+}
